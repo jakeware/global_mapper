@@ -1,0 +1,22 @@
+<launch>
+  <arg name="namespace" default="global_mapper_manager" />
+  <arg name="manager" default="manager" />
+  <arg name="standalone" default="true" />
+  <arg name="load_params" default="true" />
+  <arg name="param_file" default="global_mapper.yaml" />
+
+  <group ns="$(arg namespace)" >
+    <!-- Manager -->
+    <node if="$(arg standalone)"
+          pkg="nodelet" type="nodelet" name="$(arg manager)"
+          args="manager" output="screen" >
+      <!-- Params -->
+      <rosparam command="load" if="$(arg load_params)" file="$(find global_mapper)/cfg/$(arg param_file)"/>
+    </node>
+
+    <!-- Nodelet -->
+    <node pkg="nodelet" type="nodelet" name="global_mapper"
+          args="load global_mapper/GlobalMapper $(arg manager)" output="screen">
+    </node>
+  </group>
+</launch>
