@@ -15,8 +15,8 @@
     </node>
 
     <!-- Nodelet -->
-    <node pkg="nodelet" type="nodelet" name="global_mapper"
-          args="load global_mapper/GlobalMapper $(arg manager)" output="screen">
+    <node pkg="nodelet" type="nodelet" name="global_mapper_nodelet"
+          args="load global_mapper/GlobalMapperNodelet $(arg manager)" output="screen">
     </node>
   </group>
 </launch>
