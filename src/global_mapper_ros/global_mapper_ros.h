@@ -3,6 +3,8 @@
 
 #include "ros/ros.h"
 
+#include "pcl_ros/point_cloud.h"
+
 namespace global_mapper {
 
 class GlobalMapperRos {
@@ -16,6 +18,15 @@ class GlobalMapperRos {
   void InitPublishers();
   void Run();
 
+  // callbacks
+  void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& msg);
+
+  // publishers
+
+  // subscribers
+  ros::Subscriber pointcloud_sub_;
+
+  // params
   bool test_param_;
 
   ros::NodeHandle nh_;
