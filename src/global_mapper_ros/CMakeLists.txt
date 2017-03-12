@@ -5,13 +5,7 @@ add_library(global_mapper_ros
 
 target_link_libraries(global_mapper_ros
   ${catkin_LIBRARIES}
-  )
-
-# add nodelet downstream dependencies
-add_dependencies(global_mapper_ros
-  ${catkin_EXPORTED_TARGETS}
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  global_mapper
+  ${PCL_LIBRARIES}
   )
 
 install(TARGETS global_mapper_ros

@@ -16,14 +16,22 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif (NOT CMAKE_BUILD_TYPE)
 
-## find catkin macros and libraries
+# find catkin dependencies
 set(REQ_CATKIN_PKGS   
   roscpp
   nodelet
   fla_utils
   pcl_ros
+  pcl_msgs
+  pcl_conversions
 )
 find_package(catkin REQUIRED COMPONENTS ${REQ_CATKIN_PKGS})
+
+# find system dependencies
+find_package(PCL 1.7 REQUIRED COMPONENTS common)
+find_package(Eigen3 3.2 EXACT REQUIRED)
+find_package(Boost 1.54 REQUIRED)
+
 # add_message_files(...)
 # add_service_files(...)
 # add_action_files(...)
@@ -34,12 +42,15 @@ catkin_package(
  INCLUDE_DIRS src
  LIBRARIES ${PROJECT_NAME}
  CATKIN_DEPENDS ${REQ_CATKIN_PKGS}
- DEPENDS
+ DEPENDS Boost PCL Eigen3
 )
 
 # setup global include directories
 include_directories(
   src
+  ${EIGEN3_INCLUDE_DIR}
+  ${PCL_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
