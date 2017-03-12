@@ -25,7 +25,7 @@ class GlobalMapperNodelet : public nodelet::Nodelet {
    * tells the other threads to stop.
    */
   static void signal_handler(int signal) {
-    printf("(svis_ros) SIGINT received\n");
+    printf("(global_mapper) SIGINT received\n");
 
     // Tell other threads to stop.
     GlobalMapperNodelet::stop_signal_ = 1;
@@ -35,9 +35,6 @@ class GlobalMapperNodelet : public nodelet::Nodelet {
 
     return;
   }
-
-  // sigint
-  static volatile std::sig_atomic_t stop_signal_;
 
   /**
    * \brief Nodelet initialization.
@@ -55,9 +52,12 @@ class GlobalMapperNodelet : public nodelet::Nodelet {
 
     return;
   }
+
+  // sigint
+  static volatile std::sig_atomic_t stop_signal_;
 };
 
-volatile std::sig_atomic_t stop_signal_ = 0;
+volatile std::sig_atomic_t GlobalMapperNodelet::stop_signal_ = 0;
 
 }  // namespace global_mapper
 
