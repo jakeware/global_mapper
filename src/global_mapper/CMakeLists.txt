@@ -5,12 +5,7 @@ add_library(global_mapper
 
 target_link_libraries(global_mapper
   ${catkin_LIBRARIES}
-  )
-
-# add nodelet downstream dependencies
-add_dependencies(global_mapper
-  ${catkin_EXPORTED_TARGETS}
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${PCL_LIBRARIES}
   )
 
 install(TARGETS global_mapper
