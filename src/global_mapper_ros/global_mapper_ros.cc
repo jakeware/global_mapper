@@ -37,6 +37,7 @@ void GlobalMapperRos::InitPublishers() {
 
 void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& point_cloud) {
   ROS_INFO("PointCloudCallback");
+  global_mapper_.PushPointCloud(point_cloud);
 }
 
 void GlobalMapperRos::Run() {
