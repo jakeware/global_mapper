@@ -1,3 +1,2 @@
-global_mapper:
-  test_param: true
+test_param: true
 
