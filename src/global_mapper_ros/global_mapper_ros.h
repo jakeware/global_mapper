@@ -4,9 +4,9 @@
 #include <csignal>
 
 #include "ros/ros.h"
+
 #include "pcl_ros/point_cloud.h"
 
-#include "pcl/filters/voxel_grid_occlusion_estimation.h"
 
 namespace global_mapper {
 
@@ -32,10 +32,7 @@ class GlobalMapperRos {
   // publishers
 
   // subscribers
-  ros::Subscriber pointcloud_sub_;
-
-  // pcl
-  pcl::VoxelGridOcclusionEstimation<pcl::PointXYZ> voxel_grid_;
+  ros::Subscriber point_cloud_sub_;
 
   // params
   bool test_param_;
