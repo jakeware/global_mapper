@@ -7,6 +7,7 @@
 
 #include "pcl_ros/point_cloud.h"
 
+#include "global_mapper/global_mapper.h"
 
 namespace global_mapper {
 
@@ -37,6 +38,7 @@ class GlobalMapperRos {
   // params
   bool test_param_;
 
+  GlobalMapper global_mapper_;
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
 };

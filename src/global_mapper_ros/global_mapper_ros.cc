@@ -11,11 +11,13 @@
 #include "fla_utils/param_utils.h"
 
 #include "global_mapper_ros/global_mapper_ros.h"
+#include "global_mapper/global_mapper.h"
 
 namespace global_mapper {
 
 GlobalMapperRos::GlobalMapperRos() :
   test_param_(false),
+  global_mapper_(),
   nh_(),
   pnh_("~") {
 }
@@ -26,14 +28,14 @@ void GlobalMapperRos::GetParams() {
 
 void GlobalMapperRos::InitSubscribers() {
   ROS_INFO("InitSubscribers");
-  pointcloud_sub_ = nh_.subscribe<pcl::PointCloud<pcl::PointXYZ> >("pointcloud", 10, &GlobalMapperRos::PointCloudCallback, this);
+  point_cloud_sub_ = nh_.subscribe<pcl::PointCloud<pcl::PointXYZ> >("pointcloud", 10, &GlobalMapperRos::PointCloudCallback, this);
 }
 
 void GlobalMapperRos::InitPublishers() {
   // not yet implemented
 }
 
-void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& msg) {
+void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& point_cloud) {
   ROS_INFO("PointCloudCallback");
 }
 

@@ -4,6 +4,7 @@ add_library(global_mapper_ros
   )
 
 target_link_libraries(global_mapper_ros
+  global_mapper
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
   )
