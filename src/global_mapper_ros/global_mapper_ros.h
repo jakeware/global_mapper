@@ -1,22 +1,30 @@
 // Copyright 2017 Massachusetts Institute of Technology
 #pragma once
 
-#include "ros/ros.h"
+#include <csignal>
 
+#include "ros/ros.h"
 #include "pcl_ros/point_cloud.h"
 
+#include "pcl/filters/voxel_grid_occlusion_estimation.h"
+
 namespace global_mapper {
+
+extern volatile std::sig_atomic_t stop_signal_;
 
 class GlobalMapperRos {
  public:
   GlobalMapperRos();
   ~GlobalMapperRos() = default;
 
+  void Run();
+
+  static volatile std::sig_atomic_t stop_signal_;
+
  private:
   void GetParams();
   void InitSubscribers();
   void InitPublishers();
-  void Run();
 
   // callbacks
   void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& msg);
@@ -25,6 +33,9 @@ class GlobalMapperRos {
 
   // subscribers
   ros::Subscriber pointcloud_sub_;
+
+  // pcl
+  pcl::VoxelGridOcclusionEstimation<pcl::PointXYZ> voxel_grid_;
 
   // params
   bool test_param_;
