@@ -24,6 +24,7 @@ void GlobalMapperRos::GetParams() {
 }
 
 void GlobalMapperRos::InitSubscribers() {
+  ROS_INFO("InitSubscribers");
   pointcloud_sub_ = nh_.subscribe<pcl::PointCloud<pcl::PointXYZ> >("pointcloud", 10, &GlobalMapperRos::PointCloudCallback, this);
 }
 
@@ -39,6 +40,8 @@ void GlobalMapperRos::Run() {
   GetParams();
   InitSubscribers();
   InitPublishers();
+
+  ros::spin();
 }
 
 }  // namespace global_mapper
