@@ -2,6 +2,7 @@
 #pragma once
 
 #include <csignal>
+#include <thread>
 
 #include "ros/ros.h"
 
@@ -11,16 +12,14 @@
 
 namespace global_mapper {
 
-extern volatile std::sig_atomic_t stop_signal_;
-
 class GlobalMapperRos {
  public:
-  GlobalMapperRos();
-  ~GlobalMapperRos() = default;
+  explicit GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr);
+  ~GlobalMapperRos();
 
   void Run();
 
-  static volatile std::sig_atomic_t stop_signal_;
+  volatile std::sig_atomic_t* stop_signal_ptr_;
 
  private:
   void GetParams();
@@ -39,6 +38,7 @@ class GlobalMapperRos {
   bool test_param_;
 
   GlobalMapper global_mapper_;
+  std::thread thread_;
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
 };

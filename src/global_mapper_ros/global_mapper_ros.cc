@@ -15,11 +15,18 @@
 
 namespace global_mapper {
 
-GlobalMapperRos::GlobalMapperRos() :
+GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr) :
+  stop_signal_ptr_(stop_signal_ptr),
   test_param_(false),
-  global_mapper_(),
+  global_mapper_(stop_signal_ptr),
   nh_(),
   pnh_("~") {
+}
+
+GlobalMapperRos::~GlobalMapperRos() {
+  if (thread_.joinable()) {
+    thread_.join();
+  }
 }
 
 void GlobalMapperRos::GetParams() {
@@ -45,6 +52,10 @@ void GlobalMapperRos::Run() {
   InitSubscribers();
   InitPublishers();
 
+  // start mapping thread
+  thread_ = std::thread(&GlobalMapper::Run, global_mapper_);
+
+  // handle ros callbacks
   ros::spin();
 }
 

@@ -46,7 +46,7 @@ class GlobalMapperNodelet : public nodelet::Nodelet {
     // Install signal handler.
     std::signal(SIGINT, signal_handler);
 
-    GlobalMapperRos global_mapper_ros;
+    GlobalMapperRos global_mapper_ros(&stop_signal_);
     NODELET_INFO("Starting loop");
     global_mapper_ros.Run();
 
