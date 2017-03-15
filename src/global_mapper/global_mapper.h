@@ -10,6 +10,8 @@
 
 namespace global_mapper {
 
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+
 class GlobalMapper {
  public:
   explicit GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_);
