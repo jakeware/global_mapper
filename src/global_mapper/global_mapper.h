@@ -4,6 +4,7 @@
 #include <csignal>
 #include <deque>
 #include <vector>
+#include <thread>
 #include <mutex>
 
 #include "pcl_ros/point_cloud.h"
@@ -24,19 +25,23 @@ class GlobalMapper {
   GlobalMapper& operator=(GlobalMapper&& rhs) = delete;
 
   void PushPointCloud(const PointCloud::ConstPtr& point_cloud);
-  const PointCloud::ConstPtr PopPointCloud();
-  const PointCloud::ConstPtr TransformPointCloud(const PointCloud::ConstPtr& point_cloud);
-  void InsertPointCloud(const PointCloud::ConstPtr& point_cloud);
   void Run();
 
   volatile std::sig_atomic_t* stop_signal_ptr_;
-  // std::mutex mutex_;
 
  private:
+  const PointCloud::ConstPtr PopPointCloud();
+  const PointCloud::ConstPtr TransformPointCloud(const PointCloud::ConstPtr& point_cloud);
+  void InsertPointCloud(const PointCloud::ConstPtr& point_cloud);
+  void Spin();
+
   std::deque<PointCloud::ConstPtr > point_cloud_buffer_;
   int global_map_size_x_;
   int global_map_size_y_;
   int global_map_size_z_;
   std::vector<float> global_map_;
+
+  std::thread thread_;
+  std::mutex mutex_;
 };
 }  // namespace global_mapper

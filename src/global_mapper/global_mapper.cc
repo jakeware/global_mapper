@@ -14,7 +14,9 @@ GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr) :
 }
 
 GlobalMapper::~GlobalMapper() {
-  // not yet implemented
+  if (thread_.joinable()) {
+    thread_.join();
+  }
 }
 
 void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
@@ -25,10 +27,10 @@ void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 }
 
 const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
-  ROS_INFO("PopPointCloud");
   // std::lock_guard<std::mutex> lock(mutex_);
   PointCloud::ConstPtr cloud_ptr = nullptr;
   if (point_cloud_buffer_.size() > 0) {
+    ROS_INFO("PopPointCloud");
     cloud_ptr = point_cloud_buffer_.front();
     point_cloud_buffer_.pop_front();
   }
@@ -50,15 +52,18 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   }
 }
 
-void GlobalMapper::Run() {
-  fprintf(stderr, "GlobalMapper::Run");
-
+void GlobalMapper::Spin() {
   PointCloud::ConstPtr cloud_ptr;
   while (!(*stop_signal_ptr_)) {
     cloud_ptr = PopPointCloud();
     cloud_ptr = TransformPointCloud(cloud_ptr);
     InsertPointCloud(cloud_ptr);
   }
+}
+
+void GlobalMapper::Run() {
+  fprintf(stderr, "GlobalMapper::Run");
+  thread_ = std::thread(&GlobalMapper::Spin, this);
 }
 
 }  // namespace global_mapper
