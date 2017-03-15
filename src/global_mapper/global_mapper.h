@@ -16,6 +16,13 @@ class GlobalMapper {
  public:
   explicit GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_);
   ~GlobalMapper();
+
+  GlobalMapper(const GlobalMapper& rhs) = delete;
+  GlobalMapper& operator=(const GlobalMapper& rhs) = delete;
+
+  GlobalMapper(GlobalMapper&& rhs) = delete;
+  GlobalMapper& operator=(GlobalMapper&& rhs) = delete;
+
   void PushPointCloud(const PointCloud::ConstPtr& point_cloud);
   const PointCloud::ConstPtr PopPointCloud();
   const PointCloud::ConstPtr TransformPointCloud(const PointCloud::ConstPtr& point_cloud);
