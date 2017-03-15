@@ -51,14 +51,14 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 }
 
 void GlobalMapper::Run() {
-  // fprintf(stderr, "GlobalMapper::Run");
+  fprintf(stderr, "GlobalMapper::Run");
 
-  // PointCloud::ConstPtr cloud_ptr;
-  // while (!(*stop_signal_ptr_)) {
-    // cloud_ptr = PopPointCloud();
-    // cloud_ptr = TransformPointCloud(cloud_ptr);
-    // InsertPointCloud(cloud_ptr);
-  // }
+  PointCloud::ConstPtr cloud_ptr;
+  while (!(*stop_signal_ptr_)) {
+    cloud_ptr = PopPointCloud();
+    cloud_ptr = TransformPointCloud(cloud_ptr);
+    InsertPointCloud(cloud_ptr);
+  }
 }
 
 }  // namespace global_mapper
