@@ -24,9 +24,7 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr) :
 }
 
 GlobalMapperRos::~GlobalMapperRos() {
-  if (thread_.joinable()) {
-    thread_.join();
-  }
+  // nothing
 }
 
 void GlobalMapperRos::GetParams() {
@@ -53,7 +51,7 @@ void GlobalMapperRos::Run() {
   InitPublishers();
 
   // start mapping thread
-  thread_ = std::thread(&GlobalMapper::Run, global_mapper_);
+  global_mapper_.Run();
 
   // handle ros callbacks
   ros::spin();

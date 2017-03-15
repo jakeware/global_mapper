@@ -38,7 +38,6 @@ class GlobalMapperRos {
   bool test_param_;
 
   GlobalMapper global_mapper_;
-  std::thread thread_;
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
 };
