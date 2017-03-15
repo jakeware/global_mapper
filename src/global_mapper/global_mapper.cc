@@ -17,18 +17,45 @@ GlobalMapper::~GlobalMapper() {
   // not yet implemented
 }
 
-void GlobalMapper::PushPointCloud(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& point_cloud) {
+void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   ROS_INFO("PushPointCloud");
   point_cloud_buffer_.push_front(point_cloud);
   ROS_INFO("point_cloud_buffer.size(): %lu", point_cloud_buffer_.size());
 }
 
-void GlobalMapper::Run() {
-  fprintf(stderr, "GlobalMapper::Run");
+// PointCloud::ConstPtr& GlobalMapper::PopPointCloud() {
+//   ROS_INFO("PopPointCloud");
+//   std::lock_guard<std::mutex> lock(mutex_);
+//   if (point_cloud_buffer_.size() > 0) {
+//     return point_cloud_buffer_.pop_front();
+//   } else {
+//     return nullptr;
+//   }
+// }
 
-  while (!(*stop_signal_ptr_)) {
-    // nothing
-  }
+// const PointCloud::ConstPtr& GlobalMapper::TransformPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
+//   // check for garbage input
+//   if (!cloud_ptr) {
+//     return nullptr;
+//   }
+// }
+
+// void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
+//   // check for garbage input
+//   if (!cloud_ptr) {
+//     return;
+//   }
+// }
+
+void GlobalMapper::Run() {
+  // fprintf(stderr, "GlobalMapper::Run");
+
+  // PointCloud::ConstPtr cloud_ptr;
+  // while (!(*stop_signal_ptr_)) {
+    // cloud_ptr = PopPointCloud();
+    // cloud_ptr = TransformPointCloud(cloud_ptr);
+    // InsertPointCloud(cloud_ptr);
+  // }
 }
 
 }  // namespace global_mapper

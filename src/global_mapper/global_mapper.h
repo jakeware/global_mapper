@@ -16,14 +16,17 @@ class GlobalMapper {
  public:
   explicit GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_);
   ~GlobalMapper();
-  void PushPointCloud(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& point_cloud);
+  void PushPointCloud(const PointCloud::ConstPtr& point_cloud);
+  // PointCloud::ConstPtr& PopPointCloud();
+  // const PointCloud::ConstPtr& TransformPointCloud(const PointCloud::ConstPtr& point_cloud);
+  // void InsertPointCloud(const PointCloud::ConstPtr& point_cloud);
   void Run();
 
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::mutex mutex_;
 
  private:
-  std::deque<pcl::PointCloud<pcl::PointXYZ>::ConstPtr > point_cloud_buffer_;
+  std::deque<PointCloud::ConstPtr > point_cloud_buffer_;
   int global_map_size_x_;
   int global_map_size_y_;
   int global_map_size_z_;
