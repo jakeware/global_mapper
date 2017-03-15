@@ -24,29 +24,31 @@ void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   ROS_INFO("point_cloud_buffer.size(): %lu", point_cloud_buffer_.size());
 }
 
-// PointCloud::ConstPtr& GlobalMapper::PopPointCloud() {
-//   ROS_INFO("PopPointCloud");
-//   std::lock_guard<std::mutex> lock(mutex_);
-//   if (point_cloud_buffer_.size() > 0) {
-//     return point_cloud_buffer_.pop_front();
-//   } else {
-//     return nullptr;
-//   }
-// }
+const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
+  ROS_INFO("PopPointCloud");
+  // std::lock_guard<std::mutex> lock(mutex_);
+  PointCloud::ConstPtr cloud_ptr = nullptr;
+  if (point_cloud_buffer_.size() > 0) {
+    cloud_ptr = point_cloud_buffer_.front();
+    point_cloud_buffer_.pop_front();
+  }
 
-// const PointCloud::ConstPtr& GlobalMapper::TransformPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
-//   // check for garbage input
-//   if (!cloud_ptr) {
-//     return nullptr;
-//   }
-// }
+  return cloud_ptr;
+}
 
-// void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
-//   // check for garbage input
-//   if (!cloud_ptr) {
-//     return;
-//   }
-// }
+const PointCloud::ConstPtr GlobalMapper::TransformPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
+  // check for garbage input
+  if (!cloud_ptr) {
+    return nullptr;
+  }
+}
+
+void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
+  // check for garbage input
+  if (!cloud_ptr) {
+    return;
+  }
+}
 
 void GlobalMapper::Run() {
   // fprintf(stderr, "GlobalMapper::Run");
