@@ -6,9 +6,13 @@ namespace global_mapper {
 
 GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr) :
   stop_signal_ptr_(stop_signal_ptr),
-  ixyz_max_{100, 100, 10},
-  global_map_(ixyz_max_[0]*ixyz_max_[1]*ixyz_max_[2], 0.0) {
-  // nothing
+  ixyz_max_(),
+  global_map_() {
+  ixyz_max_[0] = 100;
+  ixyz_max_[1] = 100;
+  ixyz_max_[2] = 10;
+  global_map_.resize(ixyz_max_[0]*ixyz_max_[1]*ixyz_max_[2], 0.0);
+  fprintf(stderr, "global_map.size: %lu\n", global_map_.size());
 }
 
 GlobalMapper::~GlobalMapper() {
@@ -76,7 +80,6 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // insert point
-  PointCloud::iterator cloud_iter;
   int ixyz[3] = {0};
   for (int i = 0; i < cloud_ptr->points.size(); i++) {
     ixyz[0] = cloud_ptr->points[i].x;

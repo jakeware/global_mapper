@@ -28,11 +28,14 @@ class GlobalMapperRos {
   void GetParams();
   void InitSubscribers();
   void InitPublishers();
+  void PublishMap(const ros::TimerEvent& event);
 
   // callbacks
   void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr);
 
   // publishers
+  ros::Publisher map_pub_;
+  ros::Timer map_pub_timer_;
 
   // subscribers
   message_filters::Subscriber<sensor_msgs::PointCloud2> point_cloud_sub_;
