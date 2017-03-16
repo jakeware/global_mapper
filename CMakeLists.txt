@@ -24,6 +24,7 @@ set(REQ_CATKIN_PKGS
   pcl_ros
   pcl_msgs
   pcl_conversions
+  tf
 )
 find_package(catkin REQUIRED COMPONENTS ${REQ_CATKIN_PKGS})
 
