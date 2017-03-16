@@ -14,7 +14,8 @@
       <rosparam command="load" if="$(arg load_params)" file="$(find global_mapper)/cfg/$(arg param_file)"/>
 
       <!-- remaps -->
-      <remap from="pointcloud" to="/flight/xtion_depth/points" />
+      <remap from="cloud_topic" to="/flight/xtion_depth/points" />
+      <remap from="~map_topic" to="~global_map" />
     </node>
 
     <!-- nodelet -->
