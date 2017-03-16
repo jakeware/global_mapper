@@ -6,11 +6,9 @@ namespace global_mapper {
 
 GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr) :
   stop_signal_ptr_(stop_signal_ptr),
-  global_map_size_x_(100),
-  global_map_size_y_(100),
-  global_map_size_z_(10),
-  global_map_(global_map_size_x_ * global_map_size_y_ * global_map_size_z_, 0.0) {
-  // not yet implemented
+  ixyz_max_{100, 100, 10},
+  global_map_(ixyz_max_[0]*ixyz_max_[1]*ixyz_max_[2], 0.0) {
+  // nothing
 }
 
 GlobalMapper::~GlobalMapper() {
@@ -29,10 +27,12 @@ void GlobalMapper::PushPointCloud(const PointCloud::Ptr& cloud_ptr) {
 }
 
 const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
-  // std::lock_guard<std::mutex> lock(mutex_);
+  // lock
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  // pop
   PointCloud::ConstPtr cloud_ptr = nullptr;
   if (point_cloud_buffer_.size() > 0) {
-    ROS_INFO("PopPointCloud");
     cloud_ptr = point_cloud_buffer_.front();
     point_cloud_buffer_.pop_front();
   }
@@ -47,10 +47,42 @@ const PointCloud::ConstPtr GlobalMapper::TransformPointCloud(const PointCloud::C
   }
 }
 
+const int GlobalMapper::CoordToInd(int ixyz[3]) {
+  return (static_cast<int>(ixyz[0])
+          + static_cast<int>(ixyz[1])*ixyz_max_[0]
+          + static_cast<int>(ixyz[2])*ixyz_max_[0]*ixyz_max_[1]);
+}
+
+const void GlobalMapper::IndToCoord(int ind, int ixyz[3]) {
+  // z
+  ixyz[2] = ind / (ixyz_max_[0] * ixyz_max_[1]);
+  ind -= ixyz[2] * (ixyz_max_[0] * ixyz_max_[1]);
+
+  // y
+  ixyz[1] = ind / (ixyz_max_[0]);
+  ind -= ixyz[1] * ixyz_max_[0];
+
+  // x
+  ixyz[0] = ind;
+}
+
 void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   // check for garbage input
   if (!cloud_ptr) {
     return;
+  }
+
+  // lock
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  // insert point
+  PointCloud::iterator cloud_iter;
+  int ixyz[3] = {0};
+  for (int i = 0; i < cloud_ptr->points.size(); i++) {
+    ixyz[0] = cloud_ptr->points[i].x;
+    ixyz[1] = cloud_ptr->points[i].y;
+    ixyz[2] = cloud_ptr->points[i].z;
+    global_map_[CoordToInd(ixyz)] = 1.0;
   }
 }
 

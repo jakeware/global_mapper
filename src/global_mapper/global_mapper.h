@@ -30,15 +30,15 @@ class GlobalMapper {
   volatile std::sig_atomic_t* stop_signal_ptr_;
 
  private:
+  const int CoordToInd(int ixyz[3]);
+  const void IndToCoord(int ind, int ixyz[3]);
   const PointCloud::ConstPtr PopPointCloud();
   const PointCloud::ConstPtr TransformPointCloud(const PointCloud::ConstPtr& point_cloud);
   void InsertPointCloud(const PointCloud::ConstPtr& point_cloud);
   void Spin();
 
   std::deque<PointCloud::ConstPtr > point_cloud_buffer_;
-  int global_map_size_x_;
-  int global_map_size_y_;
-  int global_map_size_z_;
+  int ixyz_max_[3];
   std::vector<float> global_map_;
 
   std::thread thread_;
