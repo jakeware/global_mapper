@@ -24,7 +24,7 @@ class GlobalMapper {
   GlobalMapper(GlobalMapper&& rhs) = delete;
   GlobalMapper& operator=(GlobalMapper&& rhs) = delete;
 
-  void PushPointCloud(const PointCloud::ConstPtr& point_cloud);
+  void PushPointCloud(const PointCloud::Ptr& point_cloud);
   void Run();
 
   volatile std::sig_atomic_t* stop_signal_ptr_;

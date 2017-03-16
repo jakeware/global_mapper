@@ -19,9 +19,11 @@ GlobalMapper::~GlobalMapper() {
   }
 }
 
-void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
-  ROS_INFO("PushPointCloud");
-  // std::lock_guard<std::mutex> lock(mutex_);
+void GlobalMapper::PushPointCloud(const PointCloud::Ptr& cloud_ptr) {
+  // lock
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  // push
   point_cloud_buffer_.push_back(cloud_ptr);
   ROS_INFO("point_cloud_buffer.size(): %lu", point_cloud_buffer_.size());
 }

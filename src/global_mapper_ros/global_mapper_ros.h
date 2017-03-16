@@ -2,12 +2,13 @@
 #pragma once
 
 #include <csignal>
-#include <thread>
+#include <memory>
 
 #include "ros/ros.h"
-
 #include "tf/transform_listener.h"
 #include "tf/message_filter.h"
+#include "message_filters/subscriber.h"
+#include "sensor_msgs/PointCloud2.h"
 #include "pcl_ros/point_cloud.h"
 
 #include "global_mapper/global_mapper.h"
@@ -29,12 +30,13 @@ class GlobalMapperRos {
   void InitPublishers();
 
   // callbacks
-  void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& msg);
+  void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr);
 
   // publishers
 
   // subscribers
-  ros::Subscriber point_cloud_sub_;
+  message_filters::Subscriber<sensor_msgs::PointCloud2> point_cloud_sub_;
+  // ros::Subscriber point_cloud_sub_;
 
   // params
   bool test_param_;
@@ -42,5 +44,7 @@ class GlobalMapperRos {
   GlobalMapper global_mapper_;
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
+  tf::TransformListener tf_listener_;
+  std::shared_ptr<tf::MessageFilter<sensor_msgs::PointCloud2> > tf_filter_;
 };
 }  // namespace global_mapper
