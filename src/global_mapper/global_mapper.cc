@@ -21,18 +21,18 @@ GlobalMapper::~GlobalMapper() {
   }
 }
 
-void GlobalMapper::PushPointCloud(const PointCloud::Ptr& cloud_ptr) {
+void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
+
   // lock
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard<std::mutex> lock(cloud_mutex_);
 
   // push
   point_cloud_buffer_.push_back(cloud_ptr);
-  ROS_INFO("point_cloud_buffer.size(): %lu", point_cloud_buffer_.size());
 }
 
 const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
   // lock
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard<std::mutex> lock(cloud_mutex_);
 
   // pop
   PointCloud::ConstPtr cloud_ptr = nullptr;
@@ -76,8 +76,9 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
     return;
   }
 
+  fprintf(stderr, "insert cloud size: %lu\n", cloud_ptr->points.size());
   // lock
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard<std::mutex> lock(map_mutex_);
 
   // insert point
   int ixyz[3] = {0};
@@ -85,7 +86,14 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
     ixyz[0] = cloud_ptr->points[i].x;
     ixyz[1] = cloud_ptr->points[i].y;
     ixyz[2] = cloud_ptr->points[i].z;
-    global_map_[CoordToInd(ixyz)] = 1.0;
+
+    // check bounds and insert
+    if (ixyz[0] < 0 || ixyz[0] >= ixyz_max_[0] || ixyz[1] < 0 || ixyz[1] >= ixyz_max_[1]
+        || ixyz[2] < 0 || ixyz[2] >= ixyz_max_[2]) {
+      continue;
+    } else {
+      global_map_[CoordToInd(ixyz)] = 1.0;
+    }
   }
 }
 
@@ -93,7 +101,7 @@ void GlobalMapper::Spin() {
   PointCloud::ConstPtr cloud_ptr;
   while (!(*stop_signal_ptr_)) {
     cloud_ptr = PopPointCloud();
-    cloud_ptr = TransformPointCloud(cloud_ptr);
+    // cloud_ptr = TransformPointCloud(cloud_ptr);
     InsertPointCloud(cloud_ptr);
   }
 }

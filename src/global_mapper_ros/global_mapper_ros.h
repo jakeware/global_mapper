@@ -5,8 +5,7 @@
 #include <memory>
 
 #include "ros/ros.h"
-#include "tf/transform_listener.h"
-#include "tf/message_filter.h"
+#include <tf2_ros/transform_listener.h>
 #include "message_filters/subscriber.h"
 #include "sensor_msgs/PointCloud2.h"
 #include "pcl_ros/point_cloud.h"
@@ -31,15 +30,16 @@ class GlobalMapperRos {
   void PublishMap(const ros::TimerEvent& event);
 
   // callbacks
-  void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr);
+  // void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr);
+  void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr);
 
   // publishers
   ros::Publisher map_pub_;
   ros::Timer map_pub_timer_;
 
   // subscribers
-  message_filters::Subscriber<sensor_msgs::PointCloud2> point_cloud_sub_;
-  // ros::Subscriber point_cloud_sub_;
+  // message_filters::Subscriber<sensor_msgs::PointCloud2> point_cloud_sub_;
+  ros::Subscriber point_cloud_sub_;
 
   // params
   bool test_param_;
@@ -47,7 +47,8 @@ class GlobalMapperRos {
   GlobalMapper global_mapper_;
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
-  tf::TransformListener tf_listener_;
-  std::shared_ptr<tf::MessageFilter<sensor_msgs::PointCloud2> > tf_filter_;
+  tf2_ros::TransformListener tf_listener_;
+  tf2_ros::Buffer tf_buffer_;
+  // std::shared_ptr<tf::MessageFilter<sensor_msgs::PointCloud2> > tf_filter_;
 };
 }  // namespace global_mapper

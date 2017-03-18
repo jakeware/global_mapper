@@ -27,10 +27,11 @@ class GlobalMapper {
   GlobalMapper& operator=(GlobalMapper&& rhs) = delete;
 
   const void IndToCoord(int ind, int ixyz[3]);
-  void PushPointCloud(const PointCloud::Ptr& point_cloud);
+  void PushPointCloud(const PointCloud::ConstPtr& cloud_ptr);
   void Run();
 
-  std::mutex mutex_;
+  std::mutex cloud_mutex_;
+  std::mutex map_mutex_;
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::vector<float> global_map_;
 
