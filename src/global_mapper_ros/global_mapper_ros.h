@@ -3,9 +3,11 @@
 
 #include <csignal>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "ros/ros.h"
-#include <tf2_ros/transform_listener.h>
+#include "tf2_ros/transform_listener.h"
 #include "message_filters/subscriber.h"
 #include "sensor_msgs/PointCloud2.h"
 #include "pcl_ros/point_cloud.h"
@@ -36,6 +38,7 @@ class GlobalMapperRos {
   // publishers
   ros::Publisher map_pub_;
   ros::Timer map_pub_timer_;
+  ros::Publisher marker_pub_;
 
   // subscribers
   // message_filters::Subscriber<sensor_msgs::PointCloud2> point_cloud_sub_;
@@ -50,5 +53,12 @@ class GlobalMapperRos {
   tf2_ros::TransformListener tf_listener_;
   tf2_ros::Buffer tf_buffer_;
   // std::shared_ptr<tf::MessageFilter<sensor_msgs::PointCloud2> > tf_filter_;
+
+  // voxel grid
+  struct Cell {
+    double x;
+    double y;
+    double z;
+  };
 };
 }  // namespace global_mapper

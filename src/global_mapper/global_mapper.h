@@ -34,6 +34,7 @@ class GlobalMapper {
   std::mutex map_mutex_;
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::vector<float> global_map_;
+  int ixyz_max_[3];
 
  private:
   const int CoordToInd(int ixyz[3]);
@@ -43,7 +44,6 @@ class GlobalMapper {
   void Spin();
 
   std::deque<PointCloud::ConstPtr > point_cloud_buffer_;
-  int ixyz_max_[3];
 
   std::thread thread_;
 };
