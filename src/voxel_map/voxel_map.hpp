@@ -1,3 +1,4 @@
+// Copyright 2017 Massachusetts Institute of Technology
 #pragma once
 
 #include <stdio.h>
