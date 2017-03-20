@@ -37,9 +37,8 @@ void GlobalMapperRos::InitSubscribers() {
 }
 
 void GlobalMapperRos::InitPublishers() {
-  map_pub_ = pnh_.advertise<PointCloud>("map_topic", 1);
+  map_pub_ = nh_.advertise<visualization_msgs::Marker>("map_topic", 1);
   map_pub_timer_ = nh_.createTimer(ros::Duration(1.0), &GlobalMapperRos::PublishMap, this);
-  marker_pub_ = nh_.advertise<visualization_msgs::Marker>("marker_topic", 1);
 }
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
@@ -99,7 +98,7 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   }
 
   // publish
-  marker_pub_.publish(m);
+  map_pub_.publish(m);
 }
 
 // void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr) {
