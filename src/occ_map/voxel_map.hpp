@@ -8,13 +8,7 @@
 #include <math.h>
 #include <assert.h>
 
-//#define NO_LCM
-#ifndef NO_LCM
-#include <lcmtypes/occ_map_voxel_map_t.h>
-#include <zlib.h>
-#include <fstream>
-#include <typeinfo>
-#endif
+#define NO_LCM
 
 namespace occ_map {
 
