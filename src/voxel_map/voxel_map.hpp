@@ -119,6 +119,6 @@ typedef VoxelMap<uint8_t> Uint8VoxelMap;
 
 //include the actual implimentations
 #define __VOXELMAP_DIRECT_INCLUDE__
-#include "VoxelMap.hxx"
+#include "voxel_map.hxx"
 
 }
