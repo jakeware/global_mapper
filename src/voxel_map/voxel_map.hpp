@@ -1,5 +1,4 @@
-#ifndef __OCC_MAP_VOXELMAP_HPP__
-#define __OCC_MAP_VOXELMAP_HPP__
+#pragma once
 
 #include <stdio.h>
 #include <stdint.h>
@@ -122,5 +121,3 @@ typedef VoxelMap<uint8_t> Uint8VoxelMap;
 #include "VoxelMap.hxx"
 
 }
-
-#endif /*VOXELMAP_H_*/
