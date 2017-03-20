@@ -6,6 +6,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 
 #include "pcl_ros/point_cloud.h"
 
@@ -32,6 +33,7 @@ class GlobalMapper {
 
   std::mutex cloud_mutex_;
   std::mutex map_mutex_;
+  std::mutex data_mutex_;
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::vector<float> global_map_;
   int ixyz_max_[3];
@@ -46,5 +48,7 @@ class GlobalMapper {
   std::deque<PointCloud::ConstPtr > point_cloud_buffer_;
 
   std::thread thread_;
+  std::condition_variable condition_;
+  std::sig_atomic_t data_ready_;
 };
 }  // namespace global_mapper

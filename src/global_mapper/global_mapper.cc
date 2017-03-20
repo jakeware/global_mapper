@@ -23,22 +23,29 @@ GlobalMapper::~GlobalMapper() {
 
 void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 
-  // lock
-  std::lock_guard<std::mutex> lock(cloud_mutex_);
-
   // push
+  std::lock_guard<std::mutex> lock(cloud_mutex_);
   point_cloud_buffer_.push_back(cloud_ptr);
+
+  // notify
+  std::unique_lock<std::mutex> unique_lock(data_mutex_);
+  data_ready_ = true;
+  unique_lock.unlock();
+  condition_.notify_one();
 }
 
 const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
-  // lock
-  std::lock_guard<std::mutex> lock(cloud_mutex_);
-
   // pop
+  std::lock_guard<std::mutex> lock(cloud_mutex_);
   PointCloud::ConstPtr cloud_ptr = nullptr;
   if (point_cloud_buffer_.size() > 0) {
     cloud_ptr = point_cloud_buffer_.front();
     point_cloud_buffer_.pop_front();
+  }
+
+  std::unique_lock<std::mutex> unique_lock(data_mutex_);
+  if (point_cloud_buffer_.size() == 0) {
+    data_ready_ = false;
   }
 
   return cloud_ptr;
@@ -49,6 +56,8 @@ const PointCloud::ConstPtr GlobalMapper::TransformPointCloud(const PointCloud::C
   if (!cloud_ptr) {
     return nullptr;
   }
+
+  // not yet implemented
 }
 
 const int GlobalMapper::CoordToInd(int ixyz[3]) {
@@ -76,7 +85,7 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
     return;
   }
 
-  fprintf(stderr, "insert cloud size: %lu\n", cloud_ptr->points.size());
+  // fprintf(stderr, "insert cloud size: %lu\n", cloud_ptr->points.size());
   // lock
   std::lock_guard<std::mutex> lock(map_mutex_);
 
@@ -100,6 +109,10 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 void GlobalMapper::Spin() {
   PointCloud::ConstPtr cloud_ptr;
   while (!(*stop_signal_ptr_)) {
+    std::unique_lock<std::mutex> lock(data_mutex_);
+    condition_.wait(lock, [this]{return data_ready_;});
+    lock.unlock();
+
     cloud_ptr = PopPointCloud();
     // cloud_ptr = TransformPointCloud(cloud_ptr);
     InsertPointCloud(cloud_ptr);
