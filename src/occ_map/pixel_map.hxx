@@ -1,5 +1,5 @@
 #ifndef __PIXELMAP_DIRECT_INCLUDE__
-#error "PixelMap.hxx should not be included directly -- Include PixelMap.hpp instead!"
+#error "pixel_map.hxx should not be included directly -- Include pixel_map.hpp instead!"
 #endif
 
 template<typename T>

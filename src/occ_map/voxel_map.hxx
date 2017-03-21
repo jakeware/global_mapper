@@ -1,5 +1,5 @@
 #ifndef __VOXELMAP_DIRECT_INCLUDE__
-#error "VoxelMap.hxx should not be included directly -- Include VoxelMap.hpp instead!"
+#error "voxel_map.hxx should not be included directly -- Include voxel_map.hpp instead!"
 #endif
 
 template<typename T>

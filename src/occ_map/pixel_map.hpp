@@ -1,6 +1,5 @@
-#ifndef __OCC_MAP_PIXEL_MAP_HPP__
-#define __OCC_MAP_PIXEL_MAP_HPP__
-
+// Copyright 2017 Massachusetts Institute of Technology
+#pragma once
 
 #include <stdio.h>
 #include <stdint.h>
@@ -9,15 +8,7 @@
 #include <math.h>
 #include <assert.h>
 
-
-//#define NO_LCM
-#ifndef NO_LCM
-#include <lcmtypes/occ_map_pixel_map_t.h>
-#include <zlib.h>
-#include <fstream>
-#include <typeinfo>
-#endif
-
+#define NO_LCM
 
 namespace occ_map {
 
@@ -122,8 +113,6 @@ typedef PixelMap<uint8_t> Uint8PixelMap;
 
 //include the actual implimentations
 #define __PIXELMAP_DIRECT_INCLUDE__
-#include "PixelMap.hxx"
+#include "pixel_map.hxx"
 
 }
-
-#endif /*GRIDMAP_H_*/
