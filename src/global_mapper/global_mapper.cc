@@ -1,24 +1,29 @@
 // Copyright 2017 Massachusetts Institute of Technology
 
+#include "occ_map/voxel_map.hpp"
+
 #include "global_mapper/global_mapper.h"
 
 namespace global_mapper {
 
-GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr) :
-  stop_signal_ptr_(stop_signal_ptr),
-  ixyz_max_(),
-  global_map_() {
-  ixyz_max_[0] = 100;
-  ixyz_max_[1] = 100;
-  ixyz_max_[2] = 10;
-  global_map_.resize(ixyz_max_[0]*ixyz_max_[1]*ixyz_max_[2], 0.0);
-  fprintf(stderr, "global_map.size: %lu\n", global_map_.size());
+  GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr) :
+    stop_signal_ptr_(stop_signal_ptr) {
 }
 
 GlobalMapper::~GlobalMapper() {
   if (thread_.joinable()) {
     thread_.join();
   }
+}
+
+void GlobalMapper::InitMap(double voxel_xyz0[3],
+                           double voxel_xyz1[3],
+                           double voxel_meters_per_pixel[3],
+                           double voxel_init_value) {
+  voxel_map_ptr_ = std::make_shared<occ_map::VoxelMap<float> >(voxel_xyz0,
+                                                                voxel_xyz1,
+                                                                voxel_meters_per_pixel,
+                                                                voxel_init_value);
 }
 
 void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
@@ -60,25 +65,6 @@ const PointCloud::ConstPtr GlobalMapper::TransformPointCloud(const PointCloud::C
   // not yet implemented
 }
 
-const int GlobalMapper::CoordToInd(int ixyz[3]) {
-  return (static_cast<int>(ixyz[0])
-          + static_cast<int>(ixyz[1])*ixyz_max_[0]
-          + static_cast<int>(ixyz[2])*ixyz_max_[0]*ixyz_max_[1]);
-}
-
-const void GlobalMapper::IndToCoord(int ind, int ixyz[3]) {
-  // z
-  ixyz[2] = ind / (ixyz_max_[0] * ixyz_max_[1]);
-  ind -= ixyz[2] * (ixyz_max_[0] * ixyz_max_[1]);
-
-  // y
-  ixyz[1] = ind / (ixyz_max_[0]);
-  ind -= ixyz[1] * ixyz_max_[0];
-
-  // x
-  ixyz[0] = ind;
-}
-
 void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   // check for garbage input
   if (!cloud_ptr) {
@@ -90,19 +76,20 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   std::lock_guard<std::mutex> lock(map_mutex_);
 
   // insert point
-  int ixyz[3] = {0};
+  double start[3] = {0.0};
+  double end[3] = {0.0};
+  float clamp_bounds[2] = {0.0, 1.0};
   for (int i = 0; i < cloud_ptr->points.size(); i++) {
-    ixyz[0] = cloud_ptr->points[i].x;
-    ixyz[1] = cloud_ptr->points[i].y;
-    ixyz[2] = cloud_ptr->points[i].z;
+    start[0] = cloud_ptr->sensor_origin_[0];
+    start[1] = cloud_ptr->sensor_origin_[1];
+    start[2] = cloud_ptr->sensor_origin_[2];
 
-    // check bounds and insert
-    if (ixyz[0] < 0 || ixyz[0] >= ixyz_max_[0] || ixyz[1] < 0 || ixyz[1] >= ixyz_max_[1]
-        || ixyz[2] < 0 || ixyz[2] >= ixyz_max_[2]) {
-      continue;
-    } else {
-      global_map_[CoordToInd(ixyz)] = 1.0;
-    }
+    end[0] = cloud_ptr->points[i].x;
+    end[1] = cloud_ptr->points[i].y;
+    end[2] = cloud_ptr->points[i].z;
+
+    // insert
+    voxel_map_ptr_->raytrace(start, end, 0.1, 0.1, clamp_bounds);
   }
 }
 

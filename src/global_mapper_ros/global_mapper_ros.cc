@@ -17,7 +17,6 @@ namespace global_mapper {
 
 GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr) :
   stop_signal_ptr_(stop_signal_ptr),
-  test_param_(false),
   global_mapper_(stop_signal_ptr),
   nh_(),
   pnh_("~"),
@@ -29,7 +28,19 @@ GlobalMapperRos::~GlobalMapperRos() {
 }
 
 void GlobalMapperRos::GetParams() {
-  fla_utils::SafeGetParam(pnh_, "test_param", test_param_);
+  fla_utils::SafeGetParam(pnh_, "voxel_x0", voxel_xyz0_[0]);
+  fla_utils::SafeGetParam(pnh_, "voxel_y0", voxel_xyz0_[1]);
+  fla_utils::SafeGetParam(pnh_, "voxel_z0", voxel_xyz0_[2]);
+
+  fla_utils::SafeGetParam(pnh_, "voxel_x1", voxel_xyz1_[0]);
+  fla_utils::SafeGetParam(pnh_, "voxel_y1", voxel_xyz1_[1]);
+  fla_utils::SafeGetParam(pnh_, "voxel_z1", voxel_xyz1_[2]);
+
+  fla_utils::SafeGetParam(pnh_, "voxel_meters_per_pixel_x", voxel_meters_per_pixel_[0]);
+  fla_utils::SafeGetParam(pnh_, "voxel_meters_per_pixel_y", voxel_meters_per_pixel_[1]);
+  fla_utils::SafeGetParam(pnh_, "voxel_meters_per_pixel_z", voxel_meters_per_pixel_[2]);
+
+  fla_utils::SafeGetParam(pnh_, "voxel_init_value", voxel_init_value_);
 }
 
 void GlobalMapperRos::InitSubscribers() {
@@ -45,29 +56,16 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   // lock
   std::lock_guard<std::mutex> lock(global_mapper_.map_mutex_);
 
-  // TODO(jakeware): Break all of this into a map class
-  const double x_origin = 0.0;
-  const double y_origin = 0.0;
-  const double z_origin = 0.0;
-  const double x_res = 1.0;
-  const double y_res = 1.0;
-  const double z_res = 1.0;
-  const uint32_t x_size = global_mapper_.ixyz_max_[0];
-  const uint32_t y_size = global_mapper_.ixyz_max_[1];
-  const uint32_t z_size = global_mapper_.ixyz_max_[2];
-
   // get occuppied voxels
   std::vector<std::vector<double> > voxel_vec;
   uint32_t num_voxels = 0;
-  int ixyz[3] = {0};
+  double xyz[3] = {0.0};
   std::vector<double> voxel(3, 0.0);
-  for (int i = 0; i < global_mapper_.global_map_.size(); i++) {
-    if (global_mapper_.global_map_[i] > 0.0) {
-      // TODO(jakeware): Add index to world conversion
-      global_mapper_.IndToCoord(i, ixyz);
-      voxel[0] = x_origin + (static_cast<double>(ixyz[0]) + 0.5) * x_res;
-      voxel[1] = y_origin + (static_cast<double>(ixyz[1]) + 0.5) * y_res;
-      voxel[2] = z_origin + (static_cast<double>(ixyz[2]) + 0.5) * z_res;
+  for (int i = 0; i < global_mapper_.voxel_map_ptr_->num_cells; i++) {
+    global_mapper_.voxel_map_ptr_->indToLoc(i, xyz);
+
+    if (global_mapper_.voxel_map_ptr_->readValue(xyz) > 0.0) {
+      voxel.insert(voxel.end(), &xyz[0], &xyz[3]);
       voxel_vec.push_back(voxel);
 
       ++num_voxels;
@@ -83,9 +81,9 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   m.type = visualization_msgs::Marker::CUBE_LIST;
   m.action = visualization_msgs::Marker::ADD;
   m.pose.orientation.w = 1.0;
-  m.scale.x = x_res;
-  m.scale.y = y_res;
-  m.scale.z = z_res;
+  m.scale.x = global_mapper_.voxel_map_ptr_->metersPerPixel[0];
+  m.scale.y = global_mapper_.voxel_map_ptr_->metersPerPixel[1];
+  m.scale.z = global_mapper_.voxel_map_ptr_->metersPerPixel[2];
   m.color.r = 1.0f;
   m.color.g = 0.0f;
   m.color.b = 0.0f;
@@ -143,8 +141,16 @@ void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::C
   global_mapper_.PushPointCloud(cloud_trans_ptr);
 }
 
+void GlobalMapperRos::InitMap() {
+  global_mapper_.InitMap(voxel_xyz0_,
+                         voxel_xyz1_,
+                         voxel_meters_per_pixel_,
+                         voxel_init_value_);
+}
+
 void GlobalMapperRos::Run() {
   GetParams();
+  InitMap();
   InitSubscribers();
   InitPublishers();
 

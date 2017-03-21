@@ -29,6 +29,7 @@ class GlobalMapperRos {
   void GetParams();
   void InitSubscribers();
   void InitPublishers();
+  void InitMap();
   void PublishMap(const ros::TimerEvent& event);
 
   // callbacks
@@ -45,7 +46,10 @@ class GlobalMapperRos {
   ros::Subscriber point_cloud_sub_;
 
   // params
-  bool test_param_;
+  double voxel_xyz0_[3];
+  double voxel_xyz1_[3];
+  double voxel_meters_per_pixel_[3];
+  double voxel_init_value_;
 
   GlobalMapper global_mapper_;
   ros::NodeHandle nh_;
@@ -53,12 +57,5 @@ class GlobalMapperRos {
   tf2_ros::TransformListener tf_listener_;
   tf2_ros::Buffer tf_buffer_;
   // std::shared_ptr<tf::MessageFilter<sensor_msgs::PointCloud2> > tf_filter_;
-
-  // voxel grid
-  struct Cell {
-    double x;
-    double y;
-    double z;
-  };
 };
 }  // namespace global_mapper
