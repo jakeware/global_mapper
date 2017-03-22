@@ -76,20 +76,16 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   std::lock_guard<std::mutex> lock(map_mutex_);
 
   // insert point
-  double start[3] = {0.0};
+  double start[3] = {cloud_ptr->sensor_origin_[0], cloud_ptr->sensor_origin_[1], cloud_ptr->sensor_origin_[2]};
   double end[3] = {0.0};
-  float clamp_bounds[2] = {0.0, 1.0};
+  float clamp_bounds[2] = {0.0, 10.0};
   for (int i = 0; i < cloud_ptr->points.size(); i++) {
-    start[0] = cloud_ptr->sensor_origin_[0];
-    start[1] = cloud_ptr->sensor_origin_[1];
-    start[2] = cloud_ptr->sensor_origin_[2];
-
     end[0] = cloud_ptr->points[i].x;
     end[1] = cloud_ptr->points[i].y;
     end[2] = cloud_ptr->points[i].z;
 
     // insert
-    voxel_map_ptr_->raytrace(start, end, 0.1, 0.1, clamp_bounds);
+    voxel_map_ptr_->raytrace(start, end, -0.1, 0.1, clamp_bounds);
   }
 }
 
