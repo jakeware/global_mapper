@@ -10,6 +10,7 @@
 #include <condition_variable>
 
 #include "pcl_ros/point_cloud.h"
+#include "global_mapper/global_mapper_params.h"
 
 #include "occ_map/voxel_map.hpp"
 #include "occ_map/pixel_map.hpp"
@@ -20,7 +21,7 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 class GlobalMapper {
  public:
-  explicit GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_);
+  GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_, GlobalMapperParams& params);
   ~GlobalMapper();
 
   // copy constructors
@@ -32,10 +33,6 @@ class GlobalMapper {
   GlobalMapper& operator=(GlobalMapper&& rhs) = delete;
 
   void PushPointCloud(const PointCloud::ConstPtr& cloud_ptr);
-  void InitMap(double voxel_xyz0[3],
-               double voxel_xyz1[3],
-               double voxel_meters_per_pixel[3],
-               double voxel_init_value);
   void Run();
 
   std::mutex cloud_mutex_;
@@ -43,7 +40,8 @@ class GlobalMapper {
   std::mutex data_mutex_;
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::shared_ptr<occ_map::VoxelMap<float> > voxel_map_ptr_;
-  // occ_map::PixelMap<float> pixel_map_;
+  std::shared_ptr<occ_map::PixelMap<float> > pixel_map_ptr_;
+  GlobalMapperParams params_;
 
  private:
   const PointCloud::ConstPtr PopPointCloud();

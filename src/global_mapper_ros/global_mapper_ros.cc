@@ -12,38 +12,43 @@
 
 #include "global_mapper_ros/global_mapper_ros.h"
 #include "global_mapper/global_mapper.h"
+#include "global_mapper/global_mapper_params.h"
 
 namespace global_mapper {
 
-GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr) :
-  stop_signal_ptr_(stop_signal_ptr),
-  global_mapper_(stop_signal_ptr),
-  publish_voxel_map_(false),
-  nh_(),
-  pnh_("~"),
-  tf_listener_(tf_buffer_) {
-}
-
-GlobalMapperRos::~GlobalMapperRos() {
+GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
+  : stop_signal_ptr_(stop_signal_ptr),
+    publish_voxel_map_(false),
+    nh_(),
+    pnh_("~"),
+    tf_listener_(tf_buffer_) {
   // nothing
 }
 
-void GlobalMapperRos::GetParams() {
-  fla_utils::SafeGetParam(pnh_, "voxel_x0", voxel_xyz0_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_y0", voxel_xyz0_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_z0", voxel_xyz0_[2]);
+void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
+  fla_utils::SafeGetParam(pnh_, "voxel_map/x0", params.voxel_xyz0_[0]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/y0", params.voxel_xyz0_[1]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/z0", params.voxel_xyz0_[2]);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_x1", voxel_xyz1_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_y1", voxel_xyz1_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_z1", voxel_xyz1_[2]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/x1", params.voxel_xyz1_[0]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/y1", params.voxel_xyz1_[1]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/z1", params.voxel_xyz1_[2]);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_meters_per_pixel_x", voxel_meters_per_pixel_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_meters_per_pixel_y", voxel_meters_per_pixel_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_meters_per_pixel_z", voxel_meters_per_pixel_[2]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_x", params.voxel_meters_per_pixel_[0]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_y", params.voxel_meters_per_pixel_[1]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_z", params.voxel_meters_per_pixel_[2]);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_init_value", voxel_init_value_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params.voxel_init_value_);
 
-  fla_utils::SafeGetParam(pnh_, "publish_voxel_map", publish_voxel_map_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_range", params.voxel_min_range_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_range", params.voxel_max_range_);
+
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params.voxel_min_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params.voxel_max_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params.voxel_min_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params.voxel_max_z_rel_);
+
+  fla_utils::SafeGetParam(pnh_, "voxel_map/publish_map", publish_voxel_map_);
 }
 
 void GlobalMapperRos::InitSubscribers() {
@@ -92,17 +97,17 @@ std::vector<double> GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, do
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   // lock
-  std::lock_guard<std::mutex> lock(global_mapper_.map_mutex_);
+  std::lock_guard<std::mutex> lock(global_mapper_ptr_->map_mutex_);
 
   // get occuppied voxels
   std::vector<std::vector<double> > voxel_vec;
 
   double xyz[3] = {0.0};
   std::vector<double> voxel(3, 0.0);
-  for (int i = 0; i < global_mapper_.voxel_map_ptr_->num_cells; i++) {
-    global_mapper_.voxel_map_ptr_->indToLoc(i, xyz);
+  for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; i++) {
+    global_mapper_ptr_->voxel_map_ptr_->indToLoc(i, xyz);
 
-    if (global_mapper_.voxel_map_ptr_->readValue(xyz) > 0.0) {
+    if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.0) {
       voxel[0] = xyz[0];
       voxel[1] = xyz[1];
       voxel[2] = xyz[2];
@@ -131,9 +136,9 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
     marker.pose.orientation.w = 1.0;
 
     // // scale
-    marker.scale.x = global_mapper_.voxel_map_ptr_->metersPerPixel[0];
-    marker.scale.y = global_mapper_.voxel_map_ptr_->metersPerPixel[1];
-    marker.scale.z = global_mapper_.voxel_map_ptr_->metersPerPixel[2];
+    marker.scale.x = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[0];
+    marker.scale.y = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[1];
+    marker.scale.z = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[2];
 
     // position
     marker.pose.position.x = voxel_vec[i][0];
@@ -142,8 +147,8 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
 
     // color
     rgb = GrayscaleToRGBJet(marker.pose.position.z,
-                            global_mapper_.voxel_map_ptr_->xyz0[2],
-                            global_mapper_.voxel_map_ptr_->xyz1[2]);
+                            global_mapper_ptr_->voxel_map_ptr_->xyz0[2],
+                            global_mapper_ptr_->voxel_map_ptr_->xyz1[2]);
     marker.color.r = static_cast<float>(rgb[0]);
     marker.color.g = static_cast<float>(rgb[1]);
     marker.color.b = static_cast<float>(rgb[2]);
@@ -195,24 +200,18 @@ void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::C
   pcl_ros::transformPointCloud(*cloud_ptr, *cloud_trans_ptr, transform);
 
   // push to mapper
-  global_mapper_.PushPointCloud(cloud_trans_ptr);
-}
-
-void GlobalMapperRos::InitMap() {
-  global_mapper_.InitMap(voxel_xyz0_,
-                         voxel_xyz1_,
-                         voxel_meters_per_pixel_,
-                         voxel_init_value_);
+  global_mapper_ptr_->PushPointCloud(cloud_trans_ptr);
 }
 
 void GlobalMapperRos::Run() {
-  GetParams();
-  InitMap();
+  GlobalMapperParams params;
+  GetParams(params);
   InitSubscribers();
   InitPublishers();
 
   // start mapping thread
-  global_mapper_.Run();
+  global_mapper_ptr_ = std::unique_ptr<GlobalMapper>(new GlobalMapper(stop_signal_ptr_, params));
+  global_mapper_ptr_->Run();
 
   // handle ros callbacks
   ros::spin();

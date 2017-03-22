@@ -1,17 +1,37 @@
-# publishing
-publish_voxel_map: false
-
 # voxel map
-voxel_x0: 0.0
-voxel_y0: 0.0
-voxel_z0: 0.0
+voxel_map:
+  # min coordinates in world frame [m]
+  x0: 0.0
+  y0: 0.0
+  z0: 0.0
 
-voxel_x1: 50.0
-voxel_y1: 50.0
-voxel_z1: 10.0
+  # max coordinates in world frame
+  x1: 50.0
+  y1: 50.0
+  z1: 10.0
 
-voxel_meters_per_pixel_x: 0.2
-voxel_meters_per_pixel_y: 0.2
-voxel_meters_per_pixel_z: 0.2
+  # resolution [m]
+  meters_per_pixel_x: 0.2
+  meters_per_pixel_y: 0.2
+  meters_per_pixel_z: 0.2
 
-voxel_init_value: 0.0
+  # initial value of voxels
+  init_value: 0.0
+
+  # raytrace ranges
+  min_range: 0.0
+  max_range: 10.0
+
+  # pointcloud cropping
+  min_z_abs: 0.0  # [m]
+  max_z_abs: 10.0  # [m]
+  min_z_rel: -1.0  # [m]
+  max_z_rel: 1.0  # [m]
+
+  # publishing
+  publish_map: true
+
+# pixel map
+pixel_map:
+  # publishing
+  publish_map: false

@@ -6,24 +6,15 @@
 
 namespace global_mapper {
 
-  GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr) :
-    stop_signal_ptr_(stop_signal_ptr) {
+GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr, GlobalMapperParams& params)
+  : stop_signal_ptr_(stop_signal_ptr),
+    params_(params) {
 }
 
 GlobalMapper::~GlobalMapper() {
   if (thread_.joinable()) {
     thread_.join();
   }
-}
-
-void GlobalMapper::InitMap(double voxel_xyz0[3],
-                           double voxel_xyz1[3],
-                           double voxel_meters_per_pixel[3],
-                           double voxel_init_value) {
-  voxel_map_ptr_ = std::make_shared<occ_map::VoxelMap<float> >(voxel_xyz0,
-                                                                voxel_xyz1,
-                                                                voxel_meters_per_pixel,
-                                                                voxel_init_value);
 }
 
 void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
@@ -104,6 +95,12 @@ void GlobalMapper::Spin() {
 
 void GlobalMapper::Run() {
   fprintf(stderr, "GlobalMapper::Run");
+
+  voxel_map_ptr_ = std::make_shared<occ_map::VoxelMap<float> >(params_.voxel_xyz0_,
+                                                                params_.voxel_xyz1_,
+                                                                params_.voxel_meters_per_pixel_,
+                                                                params_.voxel_init_value_);
+
   thread_ = std::thread(&GlobalMapper::Spin, this);
 }
 

@@ -19,17 +19,15 @@ namespace global_mapper {
 class GlobalMapperRos {
  public:
   explicit GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr);
-  ~GlobalMapperRos();
 
   void Run();
 
   volatile std::sig_atomic_t* stop_signal_ptr_;
 
  private:
-  void GetParams();
+  void GetParams(GlobalMapperParams& global_mapper_params);
   void InitSubscribers();
   void InitPublishers();
-  void InitMap();
   void PublishMap(const ros::TimerEvent& event);
   std::vector<double> GrayscaleToRGBJet(double v, double vmin, double vmax);
 
@@ -45,13 +43,10 @@ class GlobalMapperRos {
   ros::Subscriber point_cloud_sub_;
 
   // params
-  double voxel_xyz0_[3];
-  double voxel_xyz1_[3];
-  double voxel_meters_per_pixel_[3];
-  double voxel_init_value_;
+  GlobalMapperParams params_;
   bool publish_voxel_map_;
 
-  GlobalMapper global_mapper_;
+  std::unique_ptr<GlobalMapper> global_mapper_ptr_;
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
   tf2_ros::TransformListener tf_listener_;
