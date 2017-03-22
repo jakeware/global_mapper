@@ -1,13 +1,17 @@
+# publishing
+publish_voxel_map: false
+
+# voxel map
 voxel_x0: 0.0
 voxel_y0: 0.0
 voxel_z0: 0.0
 
-voxel_x1: 100.0
-voxel_y1: 100.0
+voxel_x1: 50.0
+voxel_y1: 50.0
 voxel_z1: 10.0
 
-voxel_meters_per_pixel_x: 1.0
-voxel_meters_per_pixel_y: 1.0
-voxel_meters_per_pixel_z: 1.0
+voxel_meters_per_pixel_x: 0.2
+voxel_meters_per_pixel_y: 0.2
+voxel_meters_per_pixel_z: 0.2
 
 voxel_init_value: 0.0

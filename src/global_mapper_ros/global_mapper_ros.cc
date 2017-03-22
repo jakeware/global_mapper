@@ -18,6 +18,7 @@ namespace global_mapper {
 GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr) :
   stop_signal_ptr_(stop_signal_ptr),
   global_mapper_(stop_signal_ptr),
+  publish_voxel_map_(false),
   nh_(),
   pnh_("~"),
   tf_listener_(tf_buffer_) {
@@ -41,6 +42,8 @@ void GlobalMapperRos::GetParams() {
   fla_utils::SafeGetParam(pnh_, "voxel_meters_per_pixel_z", voxel_meters_per_pixel_[2]);
 
   fla_utils::SafeGetParam(pnh_, "voxel_init_value", voxel_init_value_);
+
+  fla_utils::SafeGetParam(pnh_, "publish_voxel_map", publish_voxel_map_);
 }
 
 void GlobalMapperRos::InitSubscribers() {
@@ -48,8 +51,43 @@ void GlobalMapperRos::InitSubscribers() {
 }
 
 void GlobalMapperRos::InitPublishers() {
-  map_pub_ = nh_.advertise<visualization_msgs::Marker>("map_topic", 1);
-  map_pub_timer_ = nh_.createTimer(ros::Duration(1.0), &GlobalMapperRos::PublishMap, this);
+  map_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("map_topic", 1);
+  if (publish_voxel_map_) {
+    map_pub_timer_ = nh_.createTimer(ros::Duration(1.0), &GlobalMapperRos::PublishMap, this);
+  }
+}
+
+/*
+  Return a RGB colour value given a scalar v in the range [vmin,vmax]
+  In this case each colour component ranges from 0 (no contribution) to
+  1 (fully saturated). The colour is clipped at the end of the scales if v is outside
+  the range [vmin,vmax]
+*/
+std::vector<double> GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, double vmax) {
+  std::vector<double> c(3, 1.0);  // white
+  double dv;
+
+  if (v < vmin)
+    v = vmin;
+  if (v > vmax)
+    v = vmax;
+  dv = vmax - vmin;
+
+  if (v < (vmin + 0.25 * dv)) {
+    c[0] = 0;
+    c[1] = 4 * (v - vmin) / dv;
+  } else if (v < (vmin + 0.5 * dv)) {
+    c[0] = 0;
+    c[2] = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
+  } else if (v < (vmin + 0.75 * dv)) {
+    c[0] = 4 * (v - vmin - 0.5 * dv) / dv;
+    c[2] = 0;
+  } else {
+    c[1] = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
+    c[2] = 0;
+  }
+
+  return c;
 }
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
@@ -58,48 +96,67 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
 
   // get occuppied voxels
   std::vector<std::vector<double> > voxel_vec;
-  uint32_t num_voxels = 0;
+
   double xyz[3] = {0.0};
   std::vector<double> voxel(3, 0.0);
   for (int i = 0; i < global_mapper_.voxel_map_ptr_->num_cells; i++) {
     global_mapper_.voxel_map_ptr_->indToLoc(i, xyz);
 
     if (global_mapper_.voxel_map_ptr_->readValue(xyz) > 0.0) {
-      voxel.insert(voxel.end(), &xyz[0], &xyz[3]);
+      voxel[0] = xyz[0];
+      voxel[1] = xyz[1];
+      voxel[2] = xyz[2];
       voxel_vec.push_back(voxel);
-
-      ++num_voxels;
     }
   }
+  int num_voxels = voxel_vec.size();
+  ROS_INFO("num_voxels: %u", num_voxels);
 
-  // populate marker message
-  visualization_msgs::Marker m;
-  m.header.frame_id = "world";
-  m.header.stamp = ros::Time::now();
-  m.ns = "global_mapper";
-  m.id = 0;
-  m.type = visualization_msgs::Marker::CUBE_LIST;
-  m.action = visualization_msgs::Marker::ADD;
-  m.pose.orientation.w = 1.0;
-  m.scale.x = global_mapper_.voxel_map_ptr_->metersPerPixel[0];
-  m.scale.y = global_mapper_.voxel_map_ptr_->metersPerPixel[1];
-  m.scale.z = global_mapper_.voxel_map_ptr_->metersPerPixel[2];
-  m.color.r = 1.0f;
-  m.color.g = 0.0f;
-  m.color.b = 0.0f;
-  m.color.a = 1.0f;
-  m.points.resize(num_voxels);
-  for (uint32_t i = 0; i < num_voxels; ++i) {
-    m.points[i].x = voxel_vec[i][0];
-    m.points[i].y = voxel_vec[i][1];
-    m.points[i].z = voxel_vec[i][2];
+  visualization_msgs::MarkerArray marker_array;
+
+  visualization_msgs::Marker marker;
+  std::vector<double> rgb(3, 1.0);
+  for (int i = 0; i < num_voxels; ++i) {
+    // create voxel marker
+    marker.header.frame_id = "world";
+    marker.header.stamp = ros::Time::now();
+    marker.id = i;
+    marker.type = visualization_msgs::Marker::CUBE;
+    marker.action = visualization_msgs::Marker::ADD;
+
+    // orientation
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+
+    // // scale
+    marker.scale.x = global_mapper_.voxel_map_ptr_->metersPerPixel[0];
+    marker.scale.y = global_mapper_.voxel_map_ptr_->metersPerPixel[1];
+    marker.scale.z = global_mapper_.voxel_map_ptr_->metersPerPixel[2];
+
+    // position
+    marker.pose.position.x = voxel_vec[i][0];
+    marker.pose.position.y = voxel_vec[i][1];
+    marker.pose.position.z = voxel_vec[i][2];
+
+    // color
+    rgb = GrayscaleToRGBJet(marker.pose.position.z,
+                            global_mapper_.voxel_map_ptr_->xyz0[2],
+                            global_mapper_.voxel_map_ptr_->xyz1[2]);
+    marker.color.r = static_cast<float>(rgb[0]);
+    marker.color.g = static_cast<float>(rgb[1]);
+    marker.color.b = static_cast<float>(rgb[2]);
+    marker.color.a = 1.0f;
+
+    // add voxel marker to marker array
+    marker_array.markers.push_back(marker);
   }
 
   // publish
-  map_pub_.publish(m);
+  map_pub_.publish(marker_array);
 }
 
-// void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr) {
 void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr) {
   // get transform
   const std::string target_frame = "world";

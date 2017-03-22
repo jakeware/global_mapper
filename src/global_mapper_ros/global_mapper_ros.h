@@ -31,9 +31,9 @@ class GlobalMapperRos {
   void InitPublishers();
   void InitMap();
   void PublishMap(const ros::TimerEvent& event);
+  std::vector<double> GrayscaleToRGBJet(double v, double vmin, double vmax);
 
   // callbacks
-  // void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr);
   void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr);
 
   // publishers
@@ -42,7 +42,6 @@ class GlobalMapperRos {
   ros::Publisher marker_pub_;
 
   // subscribers
-  // message_filters::Subscriber<sensor_msgs::PointCloud2> point_cloud_sub_;
   ros::Subscriber point_cloud_sub_;
 
   // params
@@ -50,12 +49,12 @@ class GlobalMapperRos {
   double voxel_xyz1_[3];
   double voxel_meters_per_pixel_[3];
   double voxel_init_value_;
+  bool publish_voxel_map_;
 
   GlobalMapper global_mapper_;
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
   tf2_ros::TransformListener tf_listener_;
   tf2_ros::Buffer tf_buffer_;
-  // std::shared_ptr<tf::MessageFilter<sensor_msgs::PointCloud2> > tf_filter_;
 };
 }  // namespace global_mapper
