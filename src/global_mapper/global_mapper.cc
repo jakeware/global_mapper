@@ -62,20 +62,31 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
     return;
   }
 
-  // fprintf(stderr, "insert cloud size: %lu\n", cloud_ptr->points.size());
   // lock
   std::lock_guard<std::mutex> lock(map_mutex_);
 
   // insert point
   double start[3] = {cloud_ptr->sensor_origin_[0], cloud_ptr->sensor_origin_[1], cloud_ptr->sensor_origin_[2]};
   double end[3] = {0.0};
-  float clamp_bounds[2] = {0.0, 10.0};
+  float clamp_bounds[2] = {static_cast<float>(params_.voxel_min_range_), static_cast<float>(params_.voxel_max_range_)};
   for (int i = 0; i < cloud_ptr->points.size(); i++) {
+    // absolute altitude check
+    if ((cloud_ptr->points[i].z > params_.voxel_max_z_abs_) ||
+        (cloud_ptr->points[i].z < params_.voxel_min_z_abs_)) {
+      continue;
+    }
+
+    // relative altitude check
+    if (params_.voxel_use_rel_cropping_ &&
+        ((cloud_ptr->points[i].z > (start[2] + params_.voxel_max_z_rel_)) ||
+         (cloud_ptr->points[i].z < (start[2] + params_.voxel_min_z_rel_)))) {
+      continue;
+    }
+
+    // insert
     end[0] = cloud_ptr->points[i].x;
     end[1] = cloud_ptr->points[i].y;
     end[2] = cloud_ptr->points[i].z;
-
-    // insert
     voxel_map_ptr_->raytrace(start, end, -0.1, 0.1, clamp_bounds);
   }
 }

@@ -22,7 +22,7 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
     nh_(),
     pnh_("~"),
     tf_listener_(tf_buffer_) {
-  // nothing
+  tf_buffer_.setUsingDedicatedThread(true);
 }
 
 void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
@@ -45,6 +45,8 @@ void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params.voxel_min_z_abs_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params.voxel_max_z_abs_);
+
+  fla_utils::SafeGetParam(pnh_, "voxel_map/use_rel_cropping", params.voxel_use_rel_cropping_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params.voxel_min_z_rel_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params.voxel_max_z_rel_);
 
@@ -198,6 +200,12 @@ void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::C
   pcl::PointCloud<pcl::PointXYZ> cloud_trans;
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_trans_ptr = cloud_trans.makeShared();
   pcl_ros::transformPointCloud(*cloud_ptr, *cloud_trans_ptr, transform);
+
+  // set origin of pointcloud
+  // NOTE(jakeware): feel like there must be a better way to do this.
+  cloud_trans_ptr->sensor_origin_[0] = transform_stamped.transform.translation.x;
+  cloud_trans_ptr->sensor_origin_[1] = transform_stamped.transform.translation.y;
+  cloud_trans_ptr->sensor_origin_[2] = transform_stamped.transform.translation.z;
 
   // push to mapper
   global_mapper_ptr_->PushPointCloud(cloud_trans_ptr);

@@ -13,6 +13,7 @@ GlobalMapperParams::GlobalMapperParams()
     voxel_max_range_(0.0),
     voxel_min_z_abs_(0.0),
     voxel_max_z_abs_(0.0),
+    voxel_use_rel_cropping_(false),
     voxel_min_z_rel_(0.0),
     voxel_max_z_rel_(0.0) {
   // nothing
