@@ -19,7 +19,7 @@
     </node>
 
     <!-- nodelet -->
-    <node pkg="nodelet" type="nodelet" name="global_mapper_nodelet"
+    <node pkg="nodelet" type="nodelet" name="global_mapper"
           args="load global_mapper/GlobalMapperNodelet $(arg manager)" output="screen">
     </node>
   </group>

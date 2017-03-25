@@ -9,6 +9,8 @@
 
 namespace global_mapper {
 
+volatile std::sig_atomic_t stop_signal_ = 0;
+
 class GlobalMapperNodelet : public nodelet::Nodelet {
  public:
   GlobalMapperNodelet() = default;
@@ -28,7 +30,7 @@ class GlobalMapperNodelet : public nodelet::Nodelet {
     printf("(global_mapper) SIGINT received\n");
 
     // Tell other threads to stop.
-    GlobalMapperNodelet::stop_signal_ = 1;
+    stop_signal_ = 1;
 
     // Tell ROS to shutdown nodes.
     ros::shutdown();
@@ -56,8 +58,6 @@ class GlobalMapperNodelet : public nodelet::Nodelet {
   // sigint
   static volatile std::sig_atomic_t stop_signal_;
 };
-
-volatile std::sig_atomic_t GlobalMapperNodelet::stop_signal_ = 0;
 
 }  // namespace global_mapper
 
