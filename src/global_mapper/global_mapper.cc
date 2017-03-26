@@ -98,10 +98,10 @@ void GlobalMapper::FlattenPointCloud() {
   float occ_mean = 0.0;
   uint8_t occ_mean_byte = 0;
   for (int i=0; i < voxel_map_ptr_->dimensions[0]; ++i) {
-    // reset mean
-    occ_mean = 0.0;
-
     for (int j=0; j < voxel_map_ptr_->dimensions[1]; ++j) {
+      // reset mean
+      occ_mean = 0.0;
+
       for (int k=0; k < voxel_map_ptr_->dimensions[2]; ++k) {
         // calculate average over z
         ixyz[0] = i;
