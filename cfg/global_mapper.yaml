@@ -64,8 +64,8 @@ voxel_map:
   max_z_rel: 0.5  # [m]
 
   # probabilistic increments
-  hit_inc: 0.1
-  miss_inc: -0.1
+  hit_inc: 0.01
+  miss_inc: -0.01
 
   # publishing
   publish_map: true

@@ -136,7 +136,7 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; i++) {
     global_mapper_ptr_->voxel_map_ptr_->indToLoc(i, xyz);
 
-    if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.0) {
+    if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.6) {
       voxel[0] = xyz[0];
       voxel[1] = xyz[1];
       voxel[2] = xyz[2];
