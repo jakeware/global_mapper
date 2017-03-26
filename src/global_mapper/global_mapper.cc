@@ -68,7 +68,7 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   // insert point
   double start[3] = {cloud_ptr->sensor_origin_[0], cloud_ptr->sensor_origin_[1], cloud_ptr->sensor_origin_[2]};
   double end[3] = {0.0};
-  float clamp_bounds[2] = {static_cast<float>(params_.voxel_min_range_), static_cast<float>(params_.voxel_max_range_)};
+  float clamp_bounds[2] = {static_cast<float>(params_.voxel_bound_min_), static_cast<float>(params_.voxel_bound_max_)};
   for (int i = 0; i < cloud_ptr->points.size(); i++) {
     // absolute altitude check
     if ((cloud_ptr->points[i].z > params_.voxel_max_z_abs_) ||

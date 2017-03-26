@@ -11,8 +11,8 @@ class GlobalMapperParams {
   double pixel_xy1_[2];
   double pixel_meters_per_pixel_;
   double pixel_init_value_;
-  double pixel_min_range_;
-  double pixel_max_range_;
+  double pixel_bound_min_;
+  double pixel_bound_max_;
   double pixel_min_z_abs_;
   double pixel_max_z_abs_;
   bool pixel_use_rel_flatten_;
@@ -24,8 +24,8 @@ class GlobalMapperParams {
   double voxel_xyz1_[3];
   double voxel_meters_per_pixel_[3];
   double voxel_init_value_;
-  double voxel_min_range_;
-  double voxel_max_range_;
+  double voxel_bound_min_;
+  double voxel_bound_max_;
   double voxel_min_z_abs_;
   double voxel_max_z_abs_;
   bool voxel_use_rel_cropping_;

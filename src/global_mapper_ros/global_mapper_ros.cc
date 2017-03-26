@@ -37,8 +37,8 @@ void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
 
   fla_utils::SafeGetParam(pnh_, "pixel_map/init_value", params.pixel_init_value_);
 
-  fla_utils::SafeGetParam(pnh_, "pixel_map/min_range", params.pixel_min_range_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/max_range", params.pixel_max_range_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_min", params.pixel_bound_min_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_max", params.pixel_bound_max_);
 
   fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_abs", params.pixel_min_z_abs_);
   fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_abs", params.pixel_max_z_abs_);
@@ -64,8 +64,8 @@ void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params.voxel_init_value_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/min_range", params.voxel_min_range_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/max_range", params.voxel_max_range_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_min", params.voxel_bound_min_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_max", params.voxel_bound_max_);
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params.voxel_min_z_abs_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params.voxel_max_z_abs_);
