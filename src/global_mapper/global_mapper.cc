@@ -99,16 +99,30 @@ void GlobalMapper::FlattenPointCloud() {
   float occ_temp = 0.0;
   uint8_t occ_byte = 0;
   for (int i=0; i < voxel_map_ptr_->dimensions[0]; ++i) {
+    ixyz[0] = i;
+
     for (int j=0; j < voxel_map_ptr_->dimensions[1]; ++j) {
+      ixyz[1] = j;
+
       // reset mean
       occ = 0.0;
       occ_temp = 0.0;
 
       for (int k=0; k < voxel_map_ptr_->dimensions[2]; ++k) {
-        // get max over z
-        ixyz[0] = i;
-        ixyz[1] = j;
         ixyz[2] = k;
+
+        // get coordinates from voxel_map
+        voxel_map_ptr_->tableToWorld(ixyz, xyz);
+
+        // check bounds
+        if (xyz[2] < params_.pixel_min_z_abs_ ||
+            xyz[2] > params_.pixel_max_z_abs_) {
+          continue;
+        }
+
+        // printf("z: %0.2f", xyz[2]);
+
+        // get max over z
         occ_temp = voxel_map_ptr_->readValue(ixyz);
         if (occ_temp > occ) {
           occ = occ_temp;
@@ -118,9 +132,6 @@ void GlobalMapper::FlattenPointCloud() {
       // convert to uint8_t
       occ = occ*254.0;  // scale to max value of pixel_map
       occ_byte = static_cast<uint8_t>(occ);
-
-      // get coordinates from voxel_map
-      voxel_map_ptr_->tableToWorld(ixyz, xyz);
 
       // insert into pixel map by position
       xy[0] = xyz[0];

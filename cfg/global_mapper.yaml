@@ -19,8 +19,8 @@ pixel_map:
   bound_max: 1.0
 
   # absolute position pointcloud cropping
-  min_z_abs: 0.0  # [m]
-  max_z_abs: 10.0  # [m]
+  min_z_abs: 0.5  # [m]
+  max_z_abs: 3.0  # [m]
 
   # relative position pointcloud cropping
   use_rel_flatten: false
