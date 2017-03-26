@@ -92,7 +92,38 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 }
 
 void GlobalMapper::FlattenPointCloud() {
+  int ixyz[3] = {0};
+  double xyz[3] = {0.0};
+  double xy[2] = {0.0};
+  float occ_mean = 0.0;
+  uint8_t occ_mean_byte = 0;
+  for (int i=0; i < voxel_map_ptr_->dimensions[0]; ++i) {
+    // reset mean
+    occ_mean = 0.0;
 
+    for (int j=0; j < voxel_map_ptr_->dimensions[1]; ++j) {
+      for (int k=0; k < voxel_map_ptr_->dimensions[2]; ++k) {
+        // calculate average over z
+        ixyz[0] = i;
+        ixyz[1] = j;
+        ixyz[2] = k;
+        occ_mean += voxel_map_ptr_->readValue(ixyz);
+      }
+
+      // convert to uint8_t
+      occ_mean /= static_cast<float>(voxel_map_ptr_->dimensions[2]);
+      occ_mean = occ_mean*254.0;  // scale to max value of pixel_map
+      occ_mean_byte = static_cast<uint8_t>(occ_mean);
+
+      // get coordinates from voxel_map
+      voxel_map_ptr_->tableToWorld(ixyz, xyz);
+
+      // insert into pixel map by position
+      xy[0] = xyz[0];
+      xy[1] = xyz[1];
+      pixel_map_ptr_->writeValue(xy, occ_mean);
+    }
+  }
 }
 
 void GlobalMapper::Spin() {
