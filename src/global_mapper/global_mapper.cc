@@ -95,25 +95,29 @@ void GlobalMapper::FlattenPointCloud() {
   int ixyz[3] = {0};
   double xyz[3] = {0.0};
   double xy[2] = {0.0};
-  float occ_mean = 0.0;
-  uint8_t occ_mean_byte = 0;
+  float occ = 0.0;
+  float occ_temp = 0.0;
+  uint8_t occ_byte = 0;
   for (int i=0; i < voxel_map_ptr_->dimensions[0]; ++i) {
     for (int j=0; j < voxel_map_ptr_->dimensions[1]; ++j) {
       // reset mean
-      occ_mean = 0.0;
+      occ = 0.0;
+      occ_temp = 0.0;
 
       for (int k=0; k < voxel_map_ptr_->dimensions[2]; ++k) {
-        // calculate average over z
+        // get max over z
         ixyz[0] = i;
         ixyz[1] = j;
         ixyz[2] = k;
-        occ_mean += voxel_map_ptr_->readValue(ixyz);
+        occ_temp = voxel_map_ptr_->readValue(ixyz);
+        if (occ_temp > occ) {
+          occ = occ_temp;
+        }
       }
 
       // convert to uint8_t
-      occ_mean /= static_cast<float>(voxel_map_ptr_->dimensions[2]);
-      occ_mean = occ_mean*254.0;  // scale to max value of pixel_map
-      occ_mean_byte = static_cast<uint8_t>(occ_mean);
+      occ = occ*254.0;  // scale to max value of pixel_map
+      occ_byte = static_cast<uint8_t>(occ);
 
       // get coordinates from voxel_map
       voxel_map_ptr_->tableToWorld(ixyz, xyz);
@@ -121,7 +125,7 @@ void GlobalMapper::FlattenPointCloud() {
       // insert into pixel map by position
       xy[0] = xyz[0];
       xy[1] = xyz[1];
-      pixel_map_ptr_->writeValue(xy, occ_mean);
+      pixel_map_ptr_->writeValue(xy, occ);
     }
   }
 }

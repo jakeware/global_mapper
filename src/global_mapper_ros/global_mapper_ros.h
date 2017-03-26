@@ -30,6 +30,8 @@ class GlobalMapperRos {
   void GetParams(GlobalMapperParams& global_mapper_params);
   void InitSubscribers();
   void InitPublishers();
+  void PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_grid);
+  void PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marker_array);
   void PublishMap(const ros::TimerEvent& event);
   std::vector<double> GrayscaleToRGBJet(double v, double vmin, double vmax);
 
@@ -37,7 +39,8 @@ class GlobalMapperRos {
   void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr);
 
   // publishers
-  ros::Publisher map_pub_;
+  ros::Publisher pixel_map_pub_;
+  ros::Publisher voxel_map_pub_;
   ros::Timer map_pub_timer_;
   ros::Publisher marker_pub_;
 

@@ -7,6 +7,7 @@
 #include "pcl_ros/transforms.h"
 #include "pcl/conversions.h"
 #include "visualization_msgs/MarkerArray.h"
+#include "nav_msgs/OccupancyGrid.h"
 
 #include "fla_utils/param_utils.h"
 
@@ -85,10 +86,9 @@ void GlobalMapperRos::InitSubscribers() {
 }
 
 void GlobalMapperRos::InitPublishers() {
-  map_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("map_topic", 1);
-  if (publish_voxel_map_) {
-    map_pub_timer_ = nh_.createTimer(ros::Duration(1.0), &GlobalMapperRos::PublishMap, this);
-  }
+  pixel_map_pub_ = pnh_.advertise<nav_msgs::OccupancyGrid>("pixel_map_topic", 1);
+  voxel_map_pub_ = pnh_.advertise<visualization_msgs::MarkerArray>("voxel_map_topic", 1);
+  map_pub_timer_ = nh_.createTimer(ros::Duration(1.0), &GlobalMapperRos::PublishMap, this);
 }
 
 /*
@@ -124,9 +124,11 @@ std::vector<double> GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, do
   return c;
 }
 
-void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
-  // lock
-  std::lock_guard<std::mutex> lock(global_mapper_ptr_->map_mutex_);
+void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marker_array) {
+  // check for bad input
+  if (marker_array == nullptr) {
+    return;
+  }
 
   // get occuppied voxels
   std::vector<std::vector<double> > voxel_vec;
@@ -145,8 +147,6 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   }
   int num_voxels = voxel_vec.size();
   ROS_INFO("num_voxels: %u", num_voxels);
-
-  visualization_msgs::MarkerArray marker_array;
 
   visualization_msgs::Marker marker;
   std::vector<double> rgb(3, 1.0);
@@ -184,11 +184,59 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
     marker.color.a = 1.0f;
 
     // add voxel marker to marker array
-    marker_array.markers.push_back(marker);
+    marker_array->markers.push_back(marker);
+  }
+}
+
+void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_grid) {
+  // check for bad input
+  if (occupancy_grid == nullptr) {
+    return;
   }
 
-  // publish
-  map_pub_.publish(marker_array);
+  // header
+  occupancy_grid->header.frame_id = "world";
+  occupancy_grid->header.stamp = ros::Time::now();
+
+  // metadata
+  occupancy_grid->info.resolution = global_mapper_ptr_->pixel_map_ptr_->metersPerPixel;
+  occupancy_grid->info.width = global_mapper_ptr_->pixel_map_ptr_->dimensions[0];
+  occupancy_grid->info.height = global_mapper_ptr_->pixel_map_ptr_->dimensions[1];
+  occupancy_grid->info.origin.position.x = 0.0;
+  occupancy_grid->info.origin.position.y = 0.0;
+  occupancy_grid->info.origin.position.z = 0.0;
+
+  // data
+  uint8_t occ_value = 0;
+  double xy[2] = {0.0};
+  occupancy_grid->data.resize(global_mapper_ptr_->pixel_map_ptr_->num_cells);
+  for (int i = 0; i < global_mapper_ptr_->pixel_map_ptr_->num_cells; ++i) {
+    // get xy location
+    global_mapper_ptr_->pixel_map_ptr_->indToLoc(i, xy);
+
+    // get pixel value and scale
+    occ_value = global_mapper_ptr_->pixel_map_ptr_->readValue(xy);
+    occ_value = static_cast<uint8_t>(((static_cast<float>(occ_value) / 255.0) * 100.0));
+    occupancy_grid->data[i] = occ_value;
+  }
+}
+void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
+  // lock
+  std::lock_guard<std::mutex> lock(global_mapper_ptr_->map_mutex_);
+
+  // voxel map
+  if (publish_voxel_map_) {
+    visualization_msgs::MarkerArray marker_array;
+    PopulateVoxelMapMsg(&marker_array);
+    voxel_map_pub_.publish(marker_array);
+  }
+
+  // pixel_map
+  if (publish_pixel_map_) {
+    nav_msgs::OccupancyGrid occupancy_grid;
+    PopulatePixelMapMsg(&occupancy_grid);
+    pixel_map_pub_.publish(occupancy_grid);
+  }
 }
 
 void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr) {

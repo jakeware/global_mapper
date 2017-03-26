@@ -15,7 +15,8 @@
 
       <!-- remaps -->
       <remap from="cloud_topic" to="/flight/xtion_depth/points" />
-      <remap from="~map_topic" to="~global_map" />
+      <remap from="~pixel_map_topic" to="~pixel_map" />
+      <remap from="~voxel_map_topic" to="~voxel_map" />
     </node>
 
     <!-- nodelet -->
