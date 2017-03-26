@@ -1,3 +1,35 @@
+# pixel map
+pixel_map:
+  # min coordinates in world frame [m]
+  x0: 0.0
+  y0: 0.0
+
+  # max coordinates in world frame
+  x1: 50.0
+  y1: 50.0
+
+  # resolution [m]
+  meters_per_pixel: 0.2
+
+  # initial value of voxels
+  init_value: 0.0
+
+  # raytrace ranges
+  min_range: 0.0
+  max_range: 10.0
+
+  # absolute position pointcloud cropping
+  min_z_abs: 0.0  # [m]
+  max_z_abs: 10.0  # [m]
+
+  # relative position pointcloud cropping
+  use_rel_flatten: false
+  min_z_rel: -0.5  # [m]
+  max_z_rel: 0.5  # [m]
+
+  # publishing
+  publish_map: true
+
 # voxel map
 voxel_map:
   # min coordinates in world frame [m]
@@ -13,7 +45,7 @@ voxel_map:
   # resolution [m]
   meters_per_pixel_x: 0.2
   meters_per_pixel_y: 0.2
-  meters_per_pixel_z: 0.2
+  meters_per_pixel_z: 0.6
 
   # initial value of voxels
   init_value: 0.0
@@ -31,10 +63,9 @@ voxel_map:
   min_z_rel: -0.5  # [m]
   max_z_rel: 0.5  # [m]
 
+  # probabilistic increments
+  hit_inc: 0.1
+  miss_inc: -0.1
+
   # publishing
   publish_map: true
-
-# pixel map
-pixel_map:
-  # publishing
-  publish_map: false

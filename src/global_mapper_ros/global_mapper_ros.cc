@@ -26,6 +26,30 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
 }
 
 void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
+  // pixel map params
+  fla_utils::SafeGetParam(pnh_, "pixel_map/x0", params.pixel_xy0_[0]);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/y0", params.pixel_xy0_[1]);
+
+  fla_utils::SafeGetParam(pnh_, "pixel_map/x1", params.pixel_xy1_[0]);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/y1", params.pixel_xy1_[1]);
+
+  fla_utils::SafeGetParam(pnh_, "pixel_map/meters_per_pixel", params.pixel_meters_per_pixel_);
+
+  fla_utils::SafeGetParam(pnh_, "pixel_map/init_value", params.pixel_init_value_);
+
+  fla_utils::SafeGetParam(pnh_, "pixel_map/min_range", params.pixel_min_range_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/max_range", params.pixel_max_range_);
+
+  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_abs", params.pixel_min_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_abs", params.pixel_max_z_abs_);
+
+  fla_utils::SafeGetParam(pnh_, "pixel_map/use_rel_flatten", params.pixel_use_rel_flatten_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_rel", params.pixel_min_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_rel", params.pixel_max_z_rel_);
+
+  fla_utils::SafeGetParam(pnh_, "pixel_map/publish_map", publish_pixel_map_);
+
+  // voxel map params
   fla_utils::SafeGetParam(pnh_, "voxel_map/x0", params.voxel_xyz0_[0]);
   fla_utils::SafeGetParam(pnh_, "voxel_map/y0", params.voxel_xyz0_[1]);
   fla_utils::SafeGetParam(pnh_, "voxel_map/z0", params.voxel_xyz0_[2]);
@@ -49,6 +73,9 @@ void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
   fla_utils::SafeGetParam(pnh_, "voxel_map/use_rel_cropping", params.voxel_use_rel_cropping_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params.voxel_min_z_rel_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params.voxel_max_z_rel_);
+
+  fla_utils::SafeGetParam(pnh_, "voxel_map/hit_inc", params.voxel_hit_inc_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/miss_inc", params.voxel_miss_inc_);
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/publish_map", publish_voxel_map_);
 }

@@ -44,6 +44,7 @@ class GlobalMapperRos {
 
   // params
   GlobalMapperParams params_;
+  bool publish_pixel_map_;
   bool publish_voxel_map_;
 
   std::unique_ptr<GlobalMapper> global_mapper_ptr_;

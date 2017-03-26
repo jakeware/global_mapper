@@ -91,6 +91,10 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   }
 }
 
+void GlobalMapper::FlattenPointCloud() {
+
+}
+
 void GlobalMapper::Spin() {
   PointCloud::ConstPtr cloud_ptr;
   while (!(*stop_signal_ptr_)) {
@@ -101,6 +105,7 @@ void GlobalMapper::Spin() {
     cloud_ptr = PopPointCloud();
     // cloud_ptr = TransformPointCloud(cloud_ptr);
     InsertPointCloud(cloud_ptr);
+    FlattenPointCloud();
   }
 }
 
@@ -111,6 +116,11 @@ void GlobalMapper::Run() {
                                                                 params_.voxel_xyz1_,
                                                                 params_.voxel_meters_per_pixel_,
                                                                 params_.voxel_init_value_);
+
+  pixel_map_ptr_ = std::make_shared<occ_map::PixelMap<uint8_t> >(params_.pixel_xy0_,
+                                                                params_.pixel_xy1_,
+                                                                params_.pixel_meters_per_pixel_,
+                                                                params_.pixel_init_value_);
 
   thread_ = std::thread(&GlobalMapper::Spin, this);
 }
