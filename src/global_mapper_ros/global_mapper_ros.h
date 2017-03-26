@@ -11,6 +11,8 @@
 #include "message_filters/subscriber.h"
 #include "sensor_msgs/PointCloud2.h"
 #include "pcl_ros/point_cloud.h"
+#include "visualization_msgs/MarkerArray.h"
+#include "nav_msgs/OccupancyGrid.h"
 
 #include "global_mapper/global_mapper.h"
 
