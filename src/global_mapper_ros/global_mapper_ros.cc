@@ -220,6 +220,7 @@ void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_gri
     occupancy_grid->data[i] = occ_value;
   }
 }
+
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   // lock
   std::lock_guard<std::mutex> lock(global_mapper_ptr_->map_mutex_);
