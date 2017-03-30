@@ -4,9 +4,9 @@
 #include <vector>
 
 namespace global_mapper {
-class GlobalMapperParams {
+class Params {
  public:
-  GlobalMapperParams();
+  Params();
 
   std::vector<double> voxel_xyz_min_;
   std::vector<double> voxel_xyz_max_;

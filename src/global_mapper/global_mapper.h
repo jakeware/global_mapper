@@ -21,7 +21,7 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 class GlobalMapper {
  public:
-  GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_, GlobalMapperParams& params);
+  GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_, Params& params);
   ~GlobalMapper();
 
   // copy constructors
@@ -41,7 +41,7 @@ class GlobalMapper {
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::shared_ptr<occ_map::VoxelMap<float> > voxel_map_ptr_;
   std::shared_ptr<occ_map::PixelMap<float> > pixel_map_ptr_;
-  GlobalMapperParams params_;
+  Params params_;
 
  private:
   const PointCloud::ConstPtr PopPointCloud();

@@ -25,7 +25,7 @@ class GlobalMapperRos {
   volatile std::sig_atomic_t* stop_signal_ptr_;
 
  private:
-  void GetParams(GlobalMapperParams& global_mapper_params);
+  void GetParams(Params& global_mapper_params);
   void InitSubscribers();
   void InitPublishers();
   void PublishMap(const ros::TimerEvent& event);
@@ -43,7 +43,7 @@ class GlobalMapperRos {
   ros::Subscriber point_cloud_sub_;
 
   // params
-  GlobalMapperParams params_;
+  Params params_;
   bool publish_voxel_map_;
 
   std::unique_ptr<GlobalMapper> global_mapper_ptr_;

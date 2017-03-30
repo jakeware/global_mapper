@@ -25,7 +25,7 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
   tf_buffer_.setUsingDedicatedThread(true);
 }
 
-void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
+void GlobalMapperRos::GetParams(Params& params) {
   fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_min", params.voxel_xyz_min_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", params.voxel_xyz_max_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", params.voxel_resolution_);
@@ -204,7 +204,7 @@ void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::C
 }
 
 void GlobalMapperRos::Run() {
-  GlobalMapperParams params;
+  Params params;
   GetParams(params);
   InitSubscribers();
   InitPublishers();

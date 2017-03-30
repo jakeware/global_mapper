@@ -4,7 +4,7 @@
 
 namespace global_mapper {
 
-GlobalMapperParams::GlobalMapperParams()
+Params::Params()
   : voxel_xyz_min_(3, 0.0),
     voxel_xyz_max_(3, 0.0),
     voxel_resolution_(3, 0.0),

@@ -6,7 +6,7 @@
 
 namespace global_mapper {
 
-GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr, GlobalMapperParams& params)
+GlobalMapper::GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr, Params& params)
   : stop_signal_ptr_(stop_signal_ptr),
     params_(params) {
 }
