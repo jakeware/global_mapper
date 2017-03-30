@@ -25,22 +25,22 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
   tf_buffer_.setUsingDedicatedThread(true);
 }
 
-void GlobalMapperRos::GetParams(Params& params) {
-  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_min", params.voxel_xyz_min_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", params.voxel_xyz_max_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", params.voxel_resolution_);
+void GlobalMapperRos::GetParams(Params* params) {
+  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_min", params->voxel_xyz_min_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", params->voxel_xyz_max_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", params->voxel_resolution_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params.voxel_init_value_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params->voxel_init_value_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/min_range", params.voxel_min_range_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/max_range", params.voxel_max_range_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_range", params->voxel_min_range_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_range", params->voxel_max_range_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params.voxel_min_z_abs_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params.voxel_max_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params->voxel_min_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params->voxel_max_z_abs_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/use_rel_cropping", params.voxel_use_rel_cropping_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params.voxel_min_z_rel_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params.voxel_max_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/use_rel_cropping", params->voxel_use_rel_cropping_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params->voxel_min_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params->voxel_max_z_rel_);
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/publish_map", publish_voxel_map_);
 }
@@ -204,7 +204,7 @@ void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::C
 
 void GlobalMapperRos::Run() {
   Params params;
-  GetParams(params);
+  GetParams(&params);
   InitSubscribers();
   InitPublishers();
 

@@ -25,7 +25,7 @@ class GlobalMapperRos {
   volatile std::sig_atomic_t* stop_signal_ptr_;
 
  private:
-  void GetParams(Params& global_mapper_params);
+  void GetParams(Params* global_mapper_params);
   void InitSubscribers();
   void InitPublishers();
   void PublishMap(const ros::TimerEvent& event);
