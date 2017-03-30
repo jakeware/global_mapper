@@ -62,7 +62,7 @@ void GlobalMapperRos::InitPublishers() {
   1 (fully saturated). The colour is clipped at the end of the scales if v is outside
   the range [vmin,vmax]
 */
-std::vector<double> GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, double vmax) {
+void GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, double vmax, std::vector<double>* rgb) {
   std::vector<double> c(3, 1.0);  // white
   double dv;
 
@@ -85,8 +85,6 @@ std::vector<double> GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, do
     c[1] = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
     c[2] = 0;
   }
-
-  return c;
 }
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
@@ -140,9 +138,10 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
     marker.pose.position.z = voxel_vec[i][2];
 
     // color
-    rgb = GrayscaleToRGBJet(marker.pose.position.z,
-                            global_mapper_ptr_->voxel_map_ptr_->xyz0[2],
-                            global_mapper_ptr_->voxel_map_ptr_->xyz1[2]);
+    GrayscaleToRGBJet(marker.pose.position.z,
+                      global_mapper_ptr_->voxel_map_ptr_->xyz0[2],
+                      global_mapper_ptr_->voxel_map_ptr_->xyz1[2],
+                      &rgb);
     marker.color.r = static_cast<float>(rgb[0]);
     marker.color.g = static_cast<float>(rgb[1]);
     marker.color.b = static_cast<float>(rgb[2]);

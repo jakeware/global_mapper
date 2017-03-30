@@ -29,7 +29,7 @@ class GlobalMapperRos {
   void InitSubscribers();
   void InitPublishers();
   void PublishMap(const ros::TimerEvent& event);
-  std::vector<double> GrayscaleToRGBJet(double v, double vmin, double vmax);
+  void GrayscaleToRGBJet(double v, double vmin, double vmax, std::vector<double>* rgb);
 
   // callbacks
   void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr);
