@@ -13,8 +13,8 @@ voxel_map:
   init_value: 0.0
 
   # raytrace ranges
-  min_range: 0.0
-  max_range: 10.0
+  min_range: 0.0  # [m]
+  max_range: 10.0  # [m]
 
   # absolute position pointcloud cropping
   min_z_abs: 0.0  # [m]
