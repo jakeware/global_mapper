@@ -107,10 +107,10 @@ void GlobalMapper::Spin() {
 void GlobalMapper::Run() {
   fprintf(stderr, "GlobalMapper::Run");
 
-  voxel_map_ptr_ = std::make_shared<occ_map::VoxelMap<float> >(params_.voxel_xyz0_,
-                                                                params_.voxel_xyz1_,
-                                                                params_.voxel_meters_per_pixel_,
-                                                                params_.voxel_init_value_);
+  voxel_map_ptr_ = std::make_shared<occ_map::VoxelMap<float> >(params_.voxel_xyz_min_.data(),
+                                                               params_.voxel_xyz_max_.data(),
+                                                               params_.voxel_resolution_.data(),
+                                                               params_.voxel_init_value_);
 
   thread_ = std::thread(&GlobalMapper::Spin, this);
 }

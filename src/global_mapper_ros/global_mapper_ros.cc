@@ -26,17 +26,9 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
 }
 
 void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
-  fla_utils::SafeGetParam(pnh_, "voxel_map/x0", params.voxel_xyz0_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/y0", params.voxel_xyz0_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/z0", params.voxel_xyz0_[2]);
-
-  fla_utils::SafeGetParam(pnh_, "voxel_map/x1", params.voxel_xyz1_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/y1", params.voxel_xyz1_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/z1", params.voxel_xyz1_[2]);
-
-  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_x", params.voxel_meters_per_pixel_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_y", params.voxel_meters_per_pixel_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_z", params.voxel_meters_per_pixel_[2]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_min", params.voxel_xyz_min_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", params.voxel_xyz_max_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", params.voxel_resolution_);
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params.voxel_init_value_);
 

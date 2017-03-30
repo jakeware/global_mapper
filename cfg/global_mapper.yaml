@@ -1,19 +1,13 @@
 # voxel map
 voxel_map:
-  # min coordinates in world frame [m]
-  x0: 0.0
-  y0: 0.0
-  z0: 0.0
+  # min coordinates in world frame
+  xyz_min: [0.0, 0.0, 0.0]  # [m]
 
   # max coordinates in world frame
-  x1: 50.0
-  y1: 50.0
-  z1: 10.0
+  xyz_max: [50.0, 50.0, 10.0]  # [m]
 
-  # resolution [m]
-  meters_per_pixel_x: 0.2
-  meters_per_pixel_y: 0.2
-  meters_per_pixel_z: 0.2
+  # resolution
+  resolution: [0.2, 0.2, 0.2]  # [m]
 
   # initial value of voxels
   init_value: 0.0

@@ -1,14 +1,16 @@
 // Copyright 2017 Massachusetts Institute of Technology
 #pragma once
 
+#include <vector>
+
 namespace global_mapper {
 class GlobalMapperParams {
  public:
   GlobalMapperParams();
 
-  double voxel_xyz0_[3];
-  double voxel_xyz1_[3];
-  double voxel_meters_per_pixel_[3];
+  std::vector<double> voxel_xyz_min_;
+  std::vector<double> voxel_xyz_max_;
+  std::vector<double> voxel_resolution_;
   double voxel_init_value_;
   double voxel_min_range_;
   double voxel_max_range_;

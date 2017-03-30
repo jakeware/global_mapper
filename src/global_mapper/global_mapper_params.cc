@@ -5,9 +5,9 @@
 namespace global_mapper {
 
 GlobalMapperParams::GlobalMapperParams()
-  : voxel_xyz0_{0.0, 0.0, 0.0},
-    voxel_xyz1_{0.0, 0.0, 0.0},
-    voxel_meters_per_pixel_{0.0, 0.0, 0.0},
+  : voxel_xyz_min_(3, 0.0),
+    voxel_xyz_max_(3, 0.0),
+    voxel_resolution_(3, 0.0),
     voxel_init_value_(0.0),
     voxel_min_range_(0.0),
     voxel_max_range_(0.0),
