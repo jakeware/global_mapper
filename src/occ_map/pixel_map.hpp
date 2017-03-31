@@ -107,9 +107,9 @@ static occ_map_pixel_map_t * load_pixel_map_t_from_file(const std::string & name
 #endif
 
 //typedefs for ease of use
-typedef PixelMap<float> FloatPixelMap;
-typedef PixelMap<int32_t> IntPixelMap;
-typedef PixelMap<uint8_t> Uint8PixelMap;
+using FloatPixelMap = PixelMap<float>;
+using IntPixelMap = PixelMap<int32_t>;
+using Uint8PixelMap = PixelMap<uint8_t>;
 
 //include the actual implimentations
 #define __PIXELMAP_DIRECT_INCLUDE__

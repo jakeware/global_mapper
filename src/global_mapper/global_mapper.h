@@ -9,19 +9,19 @@
 #include <memory>
 #include <condition_variable>
 
-#include "pcl_ros/point_cloud.h"
-#include "global_mapper/global_mapper_params.h"
+#include <pcl_ros/point_cloud.h>
 
+#include "global_mapper/global_mapper_params.h"
 #include "occ_map/voxel_map.hpp"
 #include "occ_map/pixel_map.hpp"
 
 namespace global_mapper {
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
 
 class GlobalMapper {
  public:
-  GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_, GlobalMapperParams& params);
+  GlobalMapper(volatile std::sig_atomic_t* stop_signal_ptr_, Params& params);
   ~GlobalMapper();
 
   // copy constructors
@@ -35,13 +35,14 @@ class GlobalMapper {
   void PushPointCloud(const PointCloud::ConstPtr& cloud_ptr);
   void Run();
 
-  std::mutex cloud_mutex_;
-  std::mutex map_mutex_;
-  std::mutex data_mutex_;
+  std::unique_lock<std::mutex> CloudLock();
+  std::unique_lock<std::mutex> MapLock();
+  std::unique_lock<std::mutex> DataLock();
+
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::shared_ptr<occ_map::VoxelMap<float> > voxel_map_ptr_;
   std::shared_ptr<occ_map::PixelMap<uint8_t> > pixel_map_ptr_;
-  GlobalMapperParams params_;
+  Params params_;
 
  private:
   const PointCloud::ConstPtr PopPointCloud();
@@ -51,6 +52,10 @@ class GlobalMapper {
   void Spin();
 
   std::deque<PointCloud::ConstPtr > point_cloud_buffer_;
+
+  std::mutex cloud_mutex_;
+  std::mutex map_mutex_;
+  std::mutex data_mutex_;
 
   std::thread thread_;
   std::condition_variable condition_;

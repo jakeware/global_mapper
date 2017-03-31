@@ -6,13 +6,13 @@
 #include <string>
 #include <vector>
 
-#include "ros/ros.h"
-#include "tf2_ros/transform_listener.h"
-#include "message_filters/subscriber.h"
-#include "sensor_msgs/PointCloud2.h"
-#include "pcl_ros/point_cloud.h"
-#include "visualization_msgs/MarkerArray.h"
-#include "nav_msgs/OccupancyGrid.h"
+#include <ros/ros.h>
+#include <tf2_ros/transform_listener.h>
+#include <message_filters/subscriber.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_ros/point_cloud.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <nav_msgs/OccupancyGrid.h>
 
 #include "global_mapper/global_mapper.h"
 
@@ -27,13 +27,13 @@ class GlobalMapperRos {
   volatile std::sig_atomic_t* stop_signal_ptr_;
 
  private:
-  void GetParams(GlobalMapperParams& global_mapper_params);
+  void GetParams(Params* global_mapper_params);
   void InitSubscribers();
   void InitPublishers();
   void PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_grid);
   void PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marker_array);
   void PublishMap(const ros::TimerEvent& event);
-  std::vector<double> GrayscaleToRGBJet(double v, double vmin, double vmax);
+  void GrayscaleToRGBJet(double v, double vmin, double vmax, std::vector<double>* rgb);
 
   // callbacks
   void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr);
@@ -48,7 +48,7 @@ class GlobalMapperRos {
   ros::Subscriber point_cloud_sub_;
 
   // params
-  GlobalMapperParams params_;
+  Params params_;
   bool publish_pixel_map_;
   bool publish_voxel_map_;
 

@@ -1,10 +1,12 @@
 // Copyright 2017 Massachusetts Institute of Technology
 #pragma once
 
+#include <vector>
+
 namespace global_mapper {
-class GlobalMapperParams {
+class Params {
  public:
-  GlobalMapperParams();
+  Params();
 
   // pixel map
   double pixel_xy0_[2];
@@ -20,9 +22,9 @@ class GlobalMapperParams {
   double pixel_max_z_rel_;
 
   // voxel map
-  double voxel_xyz0_[3];
-  double voxel_xyz1_[3];
-  double voxel_meters_per_pixel_[3];
+  std::vector<double> voxel_xyz_min_;
+  std::vector<double> voxel_xyz_max_;
+  std::vector<double> voxel_resolution_;
   double voxel_init_value_;
   double voxel_bound_min_;
   double voxel_bound_max_;

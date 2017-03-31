@@ -4,7 +4,7 @@
 
 namespace global_mapper {
 
-GlobalMapperParams::GlobalMapperParams()
+Params::Params()
   : pixel_xy0_{0.0, 0.0},
     pixel_xy1_{0.0, 0.0},
     pixel_meters_per_pixel_(0.0),
@@ -16,9 +16,9 @@ GlobalMapperParams::GlobalMapperParams()
     pixel_use_rel_flatten_(false),
     pixel_min_z_rel_(0.0),
     pixel_max_z_rel_(0.0),
-    voxel_xyz0_{0.0, 0.0, 0.0},
-    voxel_xyz1_{0.0, 0.0, 0.0},
-    voxel_meters_per_pixel_{0.0, 0.0, 0.0},
+    voxel_xyz_min_(3, 0.0),
+    voxel_xyz_max_(3, 0.0),
+    voxel_resolution_(3, 0.0),
     voxel_init_value_(0.0),
     voxel_bound_min_(0.0),
     voxel_bound_max_(0.0),

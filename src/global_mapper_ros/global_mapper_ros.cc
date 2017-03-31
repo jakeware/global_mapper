@@ -2,14 +2,16 @@
 
 #include <csignal>
 #include <memory>
+#include <utility>
 
-#include "ros/ros.h"
-#include "pcl_ros/transforms.h"
-#include "pcl/conversions.h"
-#include "visualization_msgs/MarkerArray.h"
-#include "nav_msgs/OccupancyGrid.h"
+#include <ros/ros.h>
+#include <pcl_ros/transforms.h>
+#include <pcl/conversions.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <nav_msgs/OccupancyGrid.h>
 
-#include "fla_utils/param_utils.h"
+#include <fla_utils/param_utils.h>
 
 #include "global_mapper_ros/global_mapper_ros.h"
 #include "global_mapper/global_mapper.h"
@@ -26,57 +28,49 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
   tf_buffer_.setUsingDedicatedThread(true);
 }
 
-void GlobalMapperRos::GetParams(GlobalMapperParams& params) {
+void GlobalMapperRos::GetParams(Params* params) {
   // pixel map params
-  fla_utils::SafeGetParam(pnh_, "pixel_map/x0", params.pixel_xy0_[0]);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/y0", params.pixel_xy0_[1]);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/x0", params->pixel_xy0_[0]);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/y0", params->pixel_xy0_[1]);
 
-  fla_utils::SafeGetParam(pnh_, "pixel_map/x1", params.pixel_xy1_[0]);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/y1", params.pixel_xy1_[1]);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/x1", params->pixel_xy1_[0]);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/y1", params->pixel_xy1_[1]);
 
-  fla_utils::SafeGetParam(pnh_, "pixel_map/meters_per_pixel", params.pixel_meters_per_pixel_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/meters_per_pixel", params->pixel_meters_per_pixel_);
 
-  fla_utils::SafeGetParam(pnh_, "pixel_map/init_value", params.pixel_init_value_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/init_value", params->pixel_init_value_);
 
-  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_min", params.pixel_bound_min_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_max", params.pixel_bound_max_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_min", params->pixel_bound_min_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_max", params->pixel_bound_max_);
 
-  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_abs", params.pixel_min_z_abs_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_abs", params.pixel_max_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_abs", params->pixel_min_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_abs", params->pixel_max_z_abs_);
 
-  fla_utils::SafeGetParam(pnh_, "pixel_map/use_rel_flatten", params.pixel_use_rel_flatten_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_rel", params.pixel_min_z_rel_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_rel", params.pixel_max_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/use_rel_flatten", params->pixel_use_rel_flatten_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_rel", params->pixel_min_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_rel", params->pixel_max_z_rel_);
 
   fla_utils::SafeGetParam(pnh_, "pixel_map/publish_map", publish_pixel_map_);
 
   // voxel map params
-  fla_utils::SafeGetParam(pnh_, "voxel_map/x0", params.voxel_xyz0_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/y0", params.voxel_xyz0_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/z0", params.voxel_xyz0_[2]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_min", params->voxel_xyz_min_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", params->voxel_xyz_max_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", params->voxel_resolution_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/x1", params.voxel_xyz1_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/y1", params.voxel_xyz1_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/z1", params.voxel_xyz1_[2]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params->voxel_init_value_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_x", params.voxel_meters_per_pixel_[0]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_y", params.voxel_meters_per_pixel_[1]);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/meters_per_pixel_z", params.voxel_meters_per_pixel_[2]);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_min", params->voxel_bound_min_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_max", params->voxel_bound_max_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params.voxel_init_value_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params->voxel_min_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params->voxel_max_z_abs_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_min", params.voxel_bound_min_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_max", params.voxel_bound_max_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/use_rel_cropping", params->voxel_use_rel_cropping_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params->voxel_min_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params->voxel_max_z_rel_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params.voxel_min_z_abs_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params.voxel_max_z_abs_);
-
-  fla_utils::SafeGetParam(pnh_, "voxel_map/use_rel_cropping", params.voxel_use_rel_cropping_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params.voxel_min_z_rel_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params.voxel_max_z_rel_);
-
-  fla_utils::SafeGetParam(pnh_, "voxel_map/hit_inc", params.voxel_hit_inc_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/miss_inc", params.voxel_miss_inc_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/hit_inc", params->voxel_hit_inc_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/miss_inc", params->voxel_miss_inc_);
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/publish_map", publish_voxel_map_);
 }
@@ -97,8 +91,7 @@ void GlobalMapperRos::InitPublishers() {
   1 (fully saturated). The colour is clipped at the end of the scales if v is outside
   the range [vmin,vmax]
 */
-std::vector<double> GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, double vmax) {
-  std::vector<double> c(3, 1.0);  // white
+void GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, double vmax, std::vector<double>* rgb) {
   double dv;
 
   if (v < vmin)
@@ -108,20 +101,18 @@ std::vector<double> GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, do
   dv = vmax - vmin;
 
   if (v < (vmin + 0.25 * dv)) {
-    c[0] = 0;
-    c[1] = 4 * (v - vmin) / dv;
+    rgb->at(0) = 0;
+    rgb->at(1) = 4 * (v - vmin) / dv;
   } else if (v < (vmin + 0.5 * dv)) {
-    c[0] = 0;
-    c[2] = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
+    rgb->at(0) = 0;
+    rgb->at(2) = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
   } else if (v < (vmin + 0.75 * dv)) {
-    c[0] = 4 * (v - vmin - 0.5 * dv) / dv;
-    c[2] = 0;
+    rgb->at(0) = 4 * (v - vmin - 0.5 * dv) / dv;
+    rgb->at(2) = 0;
   } else {
-    c[1] = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
-    c[2] = 0;
+    rgb->at(1) = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
+    rgb->at(2) = 0;
   }
-
-  return c;
 }
 
 void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marker_array) {
@@ -131,18 +122,18 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
   }
 
   // get occuppied voxels
-  std::vector<std::vector<double> > voxel_vec;
+  std::vector<std::unique_ptr<double[]> > voxel_vec;
 
   double xyz[3] = {0.0};
-  std::vector<double> voxel(3, 0.0);
   for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; i++) {
     global_mapper_ptr_->voxel_map_ptr_->indToLoc(i, xyz);
 
     if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.6) {
-      voxel[0] = xyz[0];
-      voxel[1] = xyz[1];
-      voxel[2] = xyz[2];
-      voxel_vec.push_back(voxel);
+      std::unique_ptr<double[]> voxel_ptr(new double[3]);
+      voxel_ptr[0] = xyz[0];
+      voxel_ptr[1] = xyz[1];
+      voxel_ptr[2] = xyz[2];
+      voxel_vec.push_back(std::move(voxel_ptr));
     }
   }
   int num_voxels = voxel_vec.size();
@@ -175,9 +166,10 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
     marker.pose.position.z = voxel_vec[i][2];
 
     // color
-    rgb = GrayscaleToRGBJet(marker.pose.position.z,
-                            global_mapper_ptr_->voxel_map_ptr_->xyz0[2],
-                            global_mapper_ptr_->voxel_map_ptr_->xyz1[2]);
+    GrayscaleToRGBJet(marker.pose.position.z,
+                      global_mapper_ptr_->voxel_map_ptr_->xyz0[2],
+                      global_mapper_ptr_->voxel_map_ptr_->xyz1[2],
+                      &rgb);
     marker.color.r = static_cast<float>(rgb[0]);
     marker.color.g = static_cast<float>(rgb[1]);
     marker.color.b = static_cast<float>(rgb[2]);
@@ -223,7 +215,7 @@ void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_gri
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   // lock
-  std::lock_guard<std::mutex> lock(global_mapper_ptr_->map_mutex_);
+  std::unique_lock<std::mutex> map_lock = global_mapper_ptr_->MapLock();
 
   // voxel map
   if (publish_voxel_map_) {
@@ -288,8 +280,8 @@ void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::C
 }
 
 void GlobalMapperRos::Run() {
-  GlobalMapperParams params;
-  GetParams(params);
+  Params params;
+  GetParams(&params);
   InitSubscribers();
   InitPublishers();
 

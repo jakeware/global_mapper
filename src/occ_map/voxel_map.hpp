@@ -106,10 +106,9 @@ private:
 static occ_map_voxel_map_t * load_voxel_map_t_from_file(const std::string & name);
 #endif
 
-typedef VoxelMap<float> FloatVoxelMap;
-typedef VoxelMap<int32_t> IntVoxelMap;
-typedef VoxelMap<uint8_t> Uint8VoxelMap;
-
+using FloatVoxelMap = VoxelMap<float>;
+using IntVoxelMap = VoxelMap<int32_t>;
+using Uint8VoxelMap = VoxelMap<uint8_t>;
 
 //include the actual implimentations
 #define __VOXELMAP_DIRECT_INCLUDE__
