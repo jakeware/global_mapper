@@ -1,17 +1,15 @@
 # pixel map
 pixel_map:
   # min coordinates in world frame [m]
-  x0: 0.0
-  y0: 0.0
+  xy_min: [0.0, 0.0]  # [m]
 
   # max coordinates in world frame
-  x1: 50.0
-  y1: 50.0
+  xy_max: [50.0, 50,0]  # [m]
 
-  # resolution [m]
-  meters_per_pixel: 0.2
+  # resolution
+  resolution: 0.2  # [m]
 
-  # initial value of voxels
+  # initial value of cells
   init_value: 0.0
 
   # cell value bounds
@@ -41,7 +39,7 @@ voxel_map:
   # resolution
   resolution: [0.2, 0.2, 0.2]  # [m]
 
-  # initial value of voxels
+  # initial value of cells
   init_value: 0.0
 
   # cell value bounds

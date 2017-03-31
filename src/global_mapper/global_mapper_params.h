@@ -9,9 +9,9 @@ class Params {
   Params();
 
   // pixel map
-  double pixel_xy0_[2];
-  double pixel_xy1_[2];
-  double pixel_meters_per_pixel_;
+  double pixel_xy_min_[2];
+  double pixel_xy_max_[2];
+  double pixel_resolution_;
   double pixel_init_value_;
   double pixel_bound_min_;
   double pixel_bound_max_;
@@ -22,9 +22,9 @@ class Params {
   double pixel_max_z_rel_;
 
   // voxel map
-  std::vector<double> voxel_xyz_min_;
-  std::vector<double> voxel_xyz_max_;
-  std::vector<double> voxel_resolution_;
+  double voxel_xyz_min_[3];
+  double voxel_xyz_max_[3];
+  double voxel_resolution_[3];
   double voxel_init_value_;
   double voxel_bound_min_;
   double voxel_bound_max_;
