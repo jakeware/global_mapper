@@ -44,7 +44,7 @@ voxel_map:
 
   # cell value bounds
   bound_min: 0.0  # [m]
-  bound_max: 10.0  # [m]
+  bound_max: 1.0  # [m]
 
   # absolute position pointcloud cropping
   min_z_abs: 0.0  # [m]

@@ -41,14 +41,14 @@ class GlobalMapper {
 
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::shared_ptr<occ_map::VoxelMap<float> > voxel_map_ptr_;
-  std::shared_ptr<occ_map::PixelMap<uint8_t> > pixel_map_ptr_;
+  std::shared_ptr<occ_map::PixelMap<float> > pixel_map_ptr_;
   Params params_;
 
  private:
   const PointCloud::ConstPtr PopPointCloud();
   const PointCloud::ConstPtr TransformPointCloud(const PointCloud::ConstPtr& point_cloud);
   void InsertPointCloud(const PointCloud::ConstPtr& point_cloud);
-  void FlattenPointCloud();
+  void FlattenMap();
   void Spin();
 
   std::deque<PointCloud::ConstPtr > point_cloud_buffer_;

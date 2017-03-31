@@ -92,13 +92,12 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   }
 }
 
-void GlobalMapper::FlattenPointCloud() {
+void GlobalMapper::FlattenMap() {
   int ixyz[3] = {0};
   double xyz[3] = {0.0};
   double xy[2] = {0.0};
   float occ = 0.0;
   float occ_temp = 0.0;
-  uint8_t occ_byte = 0;
   for (int i=0; i < voxel_map_ptr_->dimensions[0]; ++i) {
     ixyz[0] = i;
 
@@ -130,10 +129,6 @@ void GlobalMapper::FlattenPointCloud() {
         }
       }
 
-      // convert to uint8_t
-      occ = occ*254.0;  // scale to max value of pixel_map
-      occ_byte = static_cast<uint8_t>(occ);
-
       // insert into pixel map by position
       xy[0] = xyz[0];
       xy[1] = xyz[1];
@@ -164,7 +159,7 @@ void GlobalMapper::Spin() {
     cloud_ptr = PopPointCloud();
     // cloud_ptr = TransformPointCloud(cloud_ptr);
     InsertPointCloud(cloud_ptr);
-    FlattenPointCloud();
+    FlattenMap();
   }
 }
 
@@ -176,7 +171,7 @@ void GlobalMapper::Run() {
                                                                params_.voxel_resolution_,
                                                                params_.voxel_init_value_);
 
-  pixel_map_ptr_ = std::make_shared<occ_map::PixelMap<uint8_t> >(params_.pixel_xy_min_,
+  pixel_map_ptr_ = std::make_shared<occ_map::PixelMap<float> >(params_.pixel_xy_min_,
                                                                 params_.pixel_xy_max_,
                                                                 params_.pixel_resolution_,
                                                                 params_.pixel_init_value_);
