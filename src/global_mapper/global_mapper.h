@@ -17,7 +17,7 @@
 
 namespace global_mapper {
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+using PointCloud = pcl::PointCloud<pcl::PointXYZ>;
 
 class GlobalMapper {
  public:
