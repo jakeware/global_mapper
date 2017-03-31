@@ -14,7 +14,7 @@ pixel_map:
   # initial value of voxels
   init_value: 0.0
 
-  # raytrace ranges
+  # cell value bounds
   bound_min: 0.0
   bound_max: 1.0
 
@@ -44,9 +44,9 @@ voxel_map:
   # initial value of voxels
   init_value: 0.0
 
-  # raytrace ranges
-  min_range: 0.0  # [m]
-  max_range: 10.0  # [m]
+  # cell value bounds
+  bound_min: 0.0  # [m]
+  bound_max: 10.0  # [m]
 
   # absolute position pointcloud cropping
   min_z_abs: 0.0  # [m]
