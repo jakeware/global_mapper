@@ -1,6 +1,7 @@
 # add global_mapper library
 add_library(global_mapper
   global_mapper.cc
+  global_mapper_params.cc
   )
 
 target_link_libraries(global_mapper

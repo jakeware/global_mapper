@@ -1,2 +1,34 @@
-test_param: true
+# voxel map
+voxel_map:
+  # min coordinates in world frame
+  xyz_min: [0.0, 0.0, 0.0]  # [m]
 
+  # max coordinates in world frame
+  xyz_max: [50.0, 50.0, 10.0]  # [m]
+
+  # resolution
+  resolution: [0.2, 0.2, 0.2]  # [m]
+
+  # initial value of voxels
+  init_value: 0.0
+
+  # raytrace ranges
+  min_range: 0.0  # [m]
+  max_range: 10.0  # [m]
+
+  # absolute position pointcloud cropping
+  min_z_abs: 0.0  # [m]
+  max_z_abs: 10.0  # [m]
+
+  # relative position pointcloud cropping
+  use_rel_cropping: false
+  min_z_rel: -0.5  # [m]
+  max_z_rel: 0.5  # [m]
+
+  # publishing
+  publish_map: true
+
+# pixel map
+pixel_map:
+  # publishing
+  publish_map: false
