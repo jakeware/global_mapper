@@ -2,6 +2,7 @@
 
 #include <csignal>
 #include <memory>
+#include <utility>
 
 #include <ros/ros.h>
 #include <pcl_ros/transforms.h>
@@ -91,18 +92,18 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   std::unique_lock<std::mutex> map_lock = global_mapper_ptr_->MapLock();
 
   // get occuppied voxels
-  std::vector<std::vector<double> > voxel_vec;
+  std::vector<std::unique_ptr<double[]> > voxel_vec;
 
   double xyz[3] = {0.0};
-  std::vector<double> voxel(3, 0.0);
   for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; i++) {
     global_mapper_ptr_->voxel_map_ptr_->indToLoc(i, xyz);
 
     if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.0) {
-      voxel[0] = xyz[0];
-      voxel[1] = xyz[1];
-      voxel[2] = xyz[2];
-      voxel_vec.push_back(voxel);
+      std::unique_ptr<double[]> voxel_ptr(new double[3]);
+      voxel_ptr[0] = xyz[0];
+      voxel_ptr[1] = xyz[1];
+      voxel_ptr[2] = xyz[2];
+      voxel_vec.push_back(std::move(voxel_ptr));
     }
   }
   int num_voxels = voxel_vec.size();
