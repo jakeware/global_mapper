@@ -20,26 +20,27 @@ GlobalMapper::~GlobalMapper() {
 void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 
   // push
-  std::lock_guard<std::mutex> lock(cloud_mutex_);
+  std::unique_lock<std::mutex> cloud_lock = CloudLock();
   point_cloud_buffer_.push_back(cloud_ptr);
 
   // notify
-  std::unique_lock<std::mutex> unique_lock(data_mutex_);
+  std::unique_lock<std::mutex> data_lock = DataLock();
   data_ready_ = true;
-  unique_lock.unlock();
+  data_lock.unlock();
   condition_.notify_one();
 }
 
 const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
   // pop
-  std::lock_guard<std::mutex> lock(cloud_mutex_);
+  std::unique_lock<std::mutex> cloud_lock = CloudLock();
   PointCloud::ConstPtr cloud_ptr = nullptr;
   if (point_cloud_buffer_.size() > 0) {
     cloud_ptr = point_cloud_buffer_.front();
     point_cloud_buffer_.pop_front();
   }
 
-  std::unique_lock<std::mutex> unique_lock(data_mutex_);
+  // notify
+  std::unique_lock<std::mutex> data_lock = DataLock();
   if (point_cloud_buffer_.size() == 0) {
     data_ready_ = false;
   }
@@ -63,7 +64,7 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   }
 
   // lock
-  std::lock_guard<std::mutex> lock(map_mutex_);
+  std::unique_lock<std::mutex> map_lock = MapLock();
 
   // insert point
   double start[3] = {cloud_ptr->sensor_origin_[0], cloud_ptr->sensor_origin_[1], cloud_ptr->sensor_origin_[2]};
@@ -91,12 +92,24 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   }
 }
 
+std::unique_lock<std::mutex> GlobalMapper::CloudLock() {
+  return std::unique_lock<std::mutex>(cloud_mutex_);
+}
+
+std::unique_lock<std::mutex> GlobalMapper::MapLock() {
+  return std::unique_lock<std::mutex>(map_mutex_);
+}
+
+std::unique_lock<std::mutex> GlobalMapper::DataLock() {
+  return std::unique_lock<std::mutex>(data_mutex_);
+}
+
 void GlobalMapper::Spin() {
   PointCloud::ConstPtr cloud_ptr;
   while (!(*stop_signal_ptr_)) {
-    std::unique_lock<std::mutex> lock(data_mutex_);
-    condition_.wait(lock, [this]{return data_ready_;});
-    lock.unlock();
+    std::unique_lock<std::mutex> data_lock = DataLock();
+    condition_.wait(data_lock, [this]{return data_ready_;});
+    data_lock.unlock();
 
     cloud_ptr = PopPointCloud();
     // cloud_ptr = TransformPointCloud(cloud_ptr);

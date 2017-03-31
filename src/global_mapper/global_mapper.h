@@ -35,9 +35,10 @@ class GlobalMapper {
   void PushPointCloud(const PointCloud::ConstPtr& cloud_ptr);
   void Run();
 
-  std::mutex cloud_mutex_;
-  std::mutex map_mutex_;
-  std::mutex data_mutex_;
+  std::unique_lock<std::mutex> CloudLock();
+  std::unique_lock<std::mutex> MapLock();
+  std::unique_lock<std::mutex> DataLock();
+
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::shared_ptr<occ_map::VoxelMap<float> > voxel_map_ptr_;
   std::shared_ptr<occ_map::PixelMap<float> > pixel_map_ptr_;
@@ -50,6 +51,10 @@ class GlobalMapper {
   void Spin();
 
   std::deque<PointCloud::ConstPtr > point_cloud_buffer_;
+
+  std::mutex cloud_mutex_;
+  std::mutex map_mutex_;
+  std::mutex data_mutex_;
 
   std::thread thread_;
   std::condition_variable condition_;

@@ -89,7 +89,7 @@ void GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, double vmax, std:
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   // lock
-  std::lock_guard<std::mutex> lock(global_mapper_ptr_->map_mutex_);
+  std::unique_lock<std::mutex> map_lock = global_mapper_ptr_->MapLock();
 
   // get occuppied voxels
   std::vector<std::vector<double> > voxel_vec;
