@@ -81,7 +81,7 @@ void GlobalMapperRos::GetParams() {
 }
 
 void GlobalMapperRos::InitSubscribers() {
-  point_cloud_sub_ = nh_.subscribe<pcl::PointCloud<pcl::PointXYZ> >("cloud_topic", 10, &GlobalMapperRos::PointCloudCallback, this);
+  point_cloud_sub_ = pnh_.subscribe<pcl::PointCloud<pcl::PointXYZ> >("cloud_topic", 10, &GlobalMapperRos::PointCloudCallback, this);
 }
 
 void GlobalMapperRos::InitPublishers() {

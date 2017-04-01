@@ -5,6 +5,11 @@
   <arg name="load_params" default="true" />
   <arg name="param_file" default="global_mapper.yaml" />
 
+  <!-- remap topics -->
+  <arg name="cloud_topic" default="/flight/xtion_depth/points" />
+  <arg name="pixel_map_topic" default="~pixel_map" />
+  <arg name="voxel_map_topic" default="~voxel_map" />
+
   <group ns="$(arg namespace)" >
     <!-- manager -->
     <node if="$(arg standalone)"
@@ -14,9 +19,9 @@
       <rosparam command="load" if="$(arg load_params)" file="$(find global_mapper)/cfg/$(arg param_file)"/>
 
       <!-- remaps -->
-      <remap from="cloud_topic" to="/flight/xtion_depth/points" />
-      <remap from="~pixel_map_topic" to="~pixel_map" />
-      <remap from="~voxel_map_topic" to="~voxel_map" />
+      <remap from="~cloud_topic" to="$(arg cloud_topic)" />
+      <remap from="~pixel_map_topic" to="$(arg pixel_map_topic)" />
+      <remap from="~voxel_map_topic" to="$(arg voxel_map_topic)" />
     </node>
 
     <!-- nodelet -->
