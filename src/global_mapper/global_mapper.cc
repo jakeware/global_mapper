@@ -20,7 +20,7 @@ GlobalMapper::~GlobalMapper() {
 void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 
   // push
-  std::unique_lock<std::mutex> cloud_lock(cloud_mutex());
+  std::lock_guard<std::mutex> cloud_lock(cloud_mutex());
   point_cloud_buffer_.push_back(cloud_ptr);
 
   // notify
@@ -32,7 +32,7 @@ void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 
 const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
   // pop
-  std::unique_lock<std::mutex> cloud_lock(cloud_mutex());
+  std::lock_guard<std::mutex> cloud_lock(cloud_mutex());
   PointCloud::ConstPtr cloud_ptr = nullptr;
   if (point_cloud_buffer_.size() > 0) {
     cloud_ptr = point_cloud_buffer_.front();
@@ -64,7 +64,7 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   }
 
   // lock
-  std::unique_lock<std::mutex> map_lock(map_mutex());
+  std::lock_guard<std::mutex> map_lock(map_mutex());
 
   // insert point
   double start[3] = {cloud_ptr->sensor_origin_[0], cloud_ptr->sensor_origin_[1], cloud_ptr->sensor_origin_[2]};

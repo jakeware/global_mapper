@@ -220,7 +220,7 @@ void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_gri
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   // lock
-  std::unique_lock<std::mutex> map_lock(global_mapper_ptr_->map_mutex());
+  std::lock_guard<std::mutex> map_lock(global_mapper_ptr_->map_mutex());
 
   // voxel map
   if (publish_voxel_map_) {
