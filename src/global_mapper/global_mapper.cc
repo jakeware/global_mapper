@@ -98,17 +98,17 @@ void GlobalMapper::FlattenMap() {
   double xy[2] = {0.0};
   float occ = 0.0;
   float occ_temp = 0.0;
-  for (int i=0; i < voxel_map_ptr_->dimensions[0]; ++i) {
+  for (int i = 0; i < voxel_map_ptr_->dimensions[0]; ++i) {
     ixyz[0] = i;
 
-    for (int j=0; j < voxel_map_ptr_->dimensions[1]; ++j) {
+    for (int j = 0; j < voxel_map_ptr_->dimensions[1]; ++j) {
       ixyz[1] = j;
 
       // reset mean
       occ = 0.0;
       occ_temp = 0.0;
 
-      for (int k=0; k < voxel_map_ptr_->dimensions[2]; ++k) {
+      for (int k = 0; k < voxel_map_ptr_->dimensions[2]; ++k) {
         ixyz[2] = k;
 
         // get coordinates from voxel_map
@@ -119,8 +119,6 @@ void GlobalMapper::FlattenMap() {
             xyz[2] > params_.pixel_max_z_abs_) {
           continue;
         }
-
-        // printf("z: %0.2f", xyz[2]);
 
         // get max over z
         occ_temp = voxel_map_ptr_->readValue(ixyz);
