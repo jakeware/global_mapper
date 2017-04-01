@@ -1,6 +1,6 @@
 // Copyright 2017 Massachusetts Institute of Technology
 
-#include "global_mapper/global_mapper_params.h"
+#include "global_mapper/params.h"
 
 namespace global_mapper {
 

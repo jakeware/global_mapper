@@ -16,7 +16,7 @@
 
 #include "global_mapper_ros/global_mapper_ros.h"
 #include "global_mapper/global_mapper.h"
-#include "global_mapper/global_mapper_params.h"
+#include "global_mapper/params.h"
 
 namespace global_mapper {
 

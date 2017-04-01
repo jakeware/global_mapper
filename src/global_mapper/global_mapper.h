@@ -11,7 +11,7 @@
 
 #include <pcl_ros/point_cloud.h>
 
-#include "global_mapper/global_mapper_params.h"
+#include "global_mapper/params.h"
 #include "occ_map/voxel_map.hpp"
 #include "occ_map/pixel_map.hpp"
 
