@@ -209,11 +209,8 @@ void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_gri
 
     // get pixel value and scale
     occ_value = global_mapper_ptr_->pixel_map_ptr_->readValue(xy);
-
-    if (occ_value < 0.0 || occ_value > 1.0) {
-      ROS_INFO("occ_value: %0.2f", occ_value);
-    }
-    occupancy_grid->data[i] = static_cast<uint8_t>(occ_value * 100.0);
+    occ_value *= 100.0;
+    occupancy_grid->data[i] = static_cast<uint8_t>(occ_value + 0.5);
   }
 }
 
