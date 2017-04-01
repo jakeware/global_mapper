@@ -8,7 +8,7 @@
 
 namespace global_mapper {
 
-volatile std::sig_atomic_t stop_signal_ = 0;
+volatile std::sig_atomic_t stop_signal = 0;
 
 /**
  * We override the default ROS SIGINT handler to set a global variable which
@@ -18,7 +18,7 @@ static void signal_handler(int signal) {
   printf("(global_mapper) SIGINT received\n");
 
   // Tell other threads to stop.
-  stop_signal_ = 1;
+  stop_signal = 1;
 
   // Tell ROS to shutdown nodes.
   ros::shutdown();
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   // Install signal handler.
   std::signal(SIGINT, global_mapper::signal_handler);
 
-  global_mapper::GlobalMapperRos global_mapper_ros(&global_mapper::stop_signal_);
+  global_mapper::GlobalMapperRos global_mapper_ros(&global_mapper::stop_signal);
   ROS_INFO("Starting loop");
   global_mapper_ros.Run();
 
