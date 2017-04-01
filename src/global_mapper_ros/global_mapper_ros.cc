@@ -27,52 +27,56 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
     pnh_("~"),
     tf_listener_(tf_buffer_) {
   tf_buffer_.setUsingDedicatedThread(true);
+
+  GetParams();
+  InitSubscribers();
+  InitPublishers();
 }
 
-void GlobalMapperRos::GetParams(Params* params) {
+void GlobalMapperRos::GetParams() {
   // pixel map params
   std::vector<double> pixel_xy_min(2, 0.0);
   fla_utils::SafeGetParam(pnh_, "pixel_map/xy_min", pixel_xy_min);
-  std::copy(pixel_xy_min.begin(), pixel_xy_min.end(), params->pixel_xy_min_);
+  std::copy(pixel_xy_min.begin(), pixel_xy_min.end(), params_.pixel_xy_min_);
 
   std::vector<double> pixel_xy_max(2, 0.0);
   fla_utils::SafeGetParam(pnh_, "pixel_map/xy_max", pixel_xy_max);
-  std::copy(pixel_xy_max.begin(), pixel_xy_max.end(), params->pixel_xy_max_);
+  std::copy(pixel_xy_max.begin(), pixel_xy_max.end(), params_.pixel_xy_max_);
 
-  fla_utils::SafeGetParam(pnh_, "pixel_map/resolution", params->pixel_resolution_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/init_value", params->pixel_init_value_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_min", params->pixel_bound_min_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_max", params->pixel_bound_max_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_abs", params->pixel_min_z_abs_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_abs", params->pixel_max_z_abs_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/use_rel_flatten", params->pixel_use_rel_flatten_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_rel", params->pixel_min_z_rel_);
-  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_rel", params->pixel_max_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/resolution", params_.pixel_resolution_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/init_value", params_.pixel_init_value_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_min", params_.pixel_bound_min_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/bound_max", params_.pixel_bound_max_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_abs", params_.pixel_min_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_abs", params_.pixel_max_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/use_rel_flatten", params_.pixel_use_rel_flatten_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/min_z_rel", params_.pixel_min_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "pixel_map/max_z_rel", params_.pixel_max_z_rel_);
   fla_utils::SafeGetParam(pnh_, "pixel_map/publish_map", publish_pixel_map_);
 
   // voxel map params
   std::vector<double> voxel_xyz_min(3, 0.0);
   fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_min", voxel_xyz_min);
-  std::copy(voxel_xyz_min.begin(), voxel_xyz_min.end(), params->voxel_xyz_min_);
+  std::copy(voxel_xyz_min.begin(), voxel_xyz_min.end(), params_.voxel_xyz_min_);
 
   std::vector<double> voxel_xyz_max(3, 0.0);
   fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", voxel_xyz_max);
-  std::copy(voxel_xyz_max.begin(), voxel_xyz_max.end(), params->voxel_xyz_max_);
+  std::copy(voxel_xyz_max.begin(), voxel_xyz_max.end(), params_.voxel_xyz_max_);
 
   std::vector<double> voxel_resolution(3, 0.0);
   fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", voxel_resolution);
-  std::copy(voxel_resolution.begin(), voxel_resolution.end(), params->voxel_resolution_);
+  std::copy(voxel_resolution.begin(), voxel_resolution.end(), params_.voxel_resolution_);
 
-  fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params->voxel_init_value_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_min", params->voxel_bound_min_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_max", params->voxel_bound_max_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params->voxel_min_z_abs_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params->voxel_max_z_abs_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/use_rel_cropping", params->voxel_use_rel_cropping_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params->voxel_min_z_rel_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params->voxel_max_z_rel_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/hit_inc", params->voxel_hit_inc_);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/miss_inc", params->voxel_miss_inc_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params_.voxel_init_value_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_min", params_.voxel_bound_min_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/bound_max", params_.voxel_bound_max_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_abs", params_.voxel_min_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_abs", params_.voxel_max_z_abs_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/use_rel_cropping", params_.voxel_use_rel_cropping_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/min_z_rel", params_.voxel_min_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/max_z_rel", params_.voxel_max_z_rel_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/hit_inc", params_.voxel_hit_inc_);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/miss_inc", params_.voxel_miss_inc_);
   fla_utils::SafeGetParam(pnh_, "voxel_map/publish_map", publish_voxel_map_);
 }
 
@@ -281,13 +285,8 @@ void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::C
 }
 
 void GlobalMapperRos::Run() {
-  Params params;
-  GetParams(&params);
-  InitSubscribers();
-  InitPublishers();
-
   // start mapping thread
-  global_mapper_ptr_ = std::unique_ptr<GlobalMapper>(new GlobalMapper(stop_signal_ptr_, params));
+  global_mapper_ptr_ = std::unique_ptr<GlobalMapper>(new GlobalMapper(stop_signal_ptr_, params_));
   global_mapper_ptr_->Run();
 
   // handle ros callbacks
