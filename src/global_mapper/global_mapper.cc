@@ -20,11 +20,11 @@ GlobalMapper::~GlobalMapper() {
 void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 
   // push
-  std::unique_lock<std::mutex> cloud_lock = CloudLock();
+  std::unique_lock<std::mutex> cloud_lock(cloud_mutex());
   point_cloud_buffer_.push_back(cloud_ptr);
 
   // notify
-  std::unique_lock<std::mutex> data_lock = DataLock();
+  std::unique_lock<std::mutex> data_lock(data_mutex());
   data_ready_ = true;
   data_lock.unlock();
   condition_.notify_one();
@@ -32,7 +32,7 @@ void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
 
 const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
   // pop
-  std::unique_lock<std::mutex> cloud_lock = CloudLock();
+  std::unique_lock<std::mutex> cloud_lock(cloud_mutex());
   PointCloud::ConstPtr cloud_ptr = nullptr;
   if (point_cloud_buffer_.size() > 0) {
     cloud_ptr = point_cloud_buffer_.front();
@@ -40,7 +40,7 @@ const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
   }
 
   // notify
-  std::unique_lock<std::mutex> data_lock = DataLock();
+  std::unique_lock<std::mutex> data_lock(data_mutex());
   if (point_cloud_buffer_.size() == 0) {
     data_ready_ = false;
   }
@@ -64,7 +64,7 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   }
 
   // lock
-  std::unique_lock<std::mutex> map_lock = MapLock();
+  std::unique_lock<std::mutex> map_lock(map_mutex());
 
   // insert point
   double start[3] = {cloud_ptr->sensor_origin_[0], cloud_ptr->sensor_origin_[1], cloud_ptr->sensor_origin_[2]};
@@ -135,22 +135,10 @@ void GlobalMapper::FlattenMap() {
   }
 }
 
-std::unique_lock<std::mutex> GlobalMapper::CloudLock() {
-  return std::unique_lock<std::mutex>(cloud_mutex_);
-}
-
-std::unique_lock<std::mutex> GlobalMapper::MapLock() {
-  return std::unique_lock<std::mutex>(map_mutex_);
-}
-
-std::unique_lock<std::mutex> GlobalMapper::DataLock() {
-  return std::unique_lock<std::mutex>(data_mutex_);
-}
-
 void GlobalMapper::Spin() {
   PointCloud::ConstPtr cloud_ptr;
   while (!(*stop_signal_ptr_)) {
-    std::unique_lock<std::mutex> data_lock = DataLock();
+    std::unique_lock<std::mutex> data_lock(data_mutex());
     condition_.wait(data_lock, [this]{return data_ready_;});
     data_lock.unlock();
 

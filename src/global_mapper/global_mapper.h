@@ -35,9 +35,10 @@ class GlobalMapper {
   void PushPointCloud(const PointCloud::ConstPtr& cloud_ptr);
   void Run();
 
-  std::unique_lock<std::mutex> CloudLock();
-  std::unique_lock<std::mutex> MapLock();
-  std::unique_lock<std::mutex> DataLock();
+  // accessor functions
+  inline std::mutex& cloud_mutex() {return cloud_mutex_;}
+  inline std::mutex& map_mutex() {return map_mutex_;}
+  inline std::mutex& data_mutex() {return data_mutex_;}
 
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::shared_ptr<occ_map::VoxelMap<float> > voxel_map_ptr_;
