@@ -127,26 +127,21 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
   }
 
   // get occuppied voxels
-  std::vector<std::unique_ptr<double[]> > voxel_vec;
-
   double xyz[3] = {0.0};
-  for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; i++) {
+  std::vector<int> occ_inds;
+  for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; ++i) {
     global_mapper_ptr_->voxel_map_ptr_->indToLoc(i, xyz);
 
     if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.6) {
-      std::unique_ptr<double[]> voxel_ptr(new double[3]);
-      voxel_ptr[0] = xyz[0];
-      voxel_ptr[1] = xyz[1];
-      voxel_ptr[2] = xyz[2];
-      voxel_vec.push_back(std::move(voxel_ptr));
+      occ_inds.push_back(i);
     }
   }
-  int num_voxels = voxel_vec.size();
-  ROS_INFO("num_voxels: %u", num_voxels);
 
-  visualization_msgs::Marker marker;
+  marker_array->markers.resize(occ_inds.size());
   std::vector<double> rgb(3, 1.0);
-  for (int i = 0; i < num_voxels; ++i) {
+  for (int i = 0; i < occ_inds.size(); ++i) {
+    visualization_msgs::Marker& marker = marker_array->markers[i];
+
     // create voxel marker
     marker.header.frame_id = "world";
     marker.header.stamp = ros::Time::now();
@@ -160,15 +155,16 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
     marker.pose.orientation.z = 0.0;
     marker.pose.orientation.w = 1.0;
 
-    // // scale
+    // scale
     marker.scale.x = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[0];
     marker.scale.y = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[1];
     marker.scale.z = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[2];
 
     // position
-    marker.pose.position.x = voxel_vec[i][0];
-    marker.pose.position.y = voxel_vec[i][1];
-    marker.pose.position.z = voxel_vec[i][2];
+    global_mapper_ptr_->voxel_map_ptr_->indToLoc(occ_inds[i], xyz);
+    marker.pose.position.x = xyz[0];
+    marker.pose.position.y = xyz[1];
+    marker.pose.position.z = xyz[2];
 
     // color
     GrayscaleToRGBJet(marker.pose.position.z,
@@ -179,9 +175,6 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
     marker.color.g = static_cast<float>(rgb[1]);
     marker.color.b = static_cast<float>(rgb[2]);
     marker.color.a = 1.0f;
-
-    // add voxel marker to marker array
-    marker_array->markers.push_back(marker);
   }
 }
 
