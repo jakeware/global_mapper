@@ -11,7 +11,7 @@
 
 #include <pcl_ros/point_cloud.h>
 
-#include "global_mapper/global_mapper_params.h"
+#include "global_mapper/params.h"
 #include "occ_map/voxel_map.hpp"
 #include "occ_map/pixel_map.hpp"
 
@@ -35,9 +35,10 @@ class GlobalMapper {
   void PushPointCloud(const PointCloud::ConstPtr& cloud_ptr);
   void Run();
 
-  std::unique_lock<std::mutex> CloudLock();
-  std::unique_lock<std::mutex> MapLock();
-  std::unique_lock<std::mutex> DataLock();
+  // accessor functions
+  inline std::mutex& cloud_mutex() {return cloud_mutex_;}
+  inline std::mutex& map_mutex() {return map_mutex_;}
+  inline std::mutex& data_mutex() {return data_mutex_;}
 
   volatile std::sig_atomic_t* stop_signal_ptr_;
   std::shared_ptr<occ_map::VoxelMap<float> > voxel_map_ptr_;
@@ -48,6 +49,7 @@ class GlobalMapper {
   const PointCloud::ConstPtr PopPointCloud();
   const PointCloud::ConstPtr TransformPointCloud(const PointCloud::ConstPtr& point_cloud);
   void InsertPointCloud(const PointCloud::ConstPtr& point_cloud);
+  void FlattenMap();
   void Spin();
 
   std::deque<PointCloud::ConstPtr > point_cloud_buffer_;

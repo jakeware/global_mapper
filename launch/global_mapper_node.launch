@@ -1,0 +1,10 @@
+<launch>
+  <arg name="param_file" default="global_mapper.yaml" />
+  <arg name="load_params" default="true" />
+
+  <!-- node -->
+  <node pkg="global_mapper" type="global_mapper_node" name="global_mapper" output="screen">
+    <!-- params -->
+    <rosparam command="load" if="$(arg load_params)" file="$(find global_mapper)/cfg/$(arg param_file)"/>
+  </node>
+</launch>

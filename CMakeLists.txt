@@ -25,6 +25,8 @@ set(REQ_CATKIN_PKGS
   pcl_msgs
   pcl_conversions
   tf2_ros
+  nav_msgs
+  visualization_msgs
 )
 find_package(catkin REQUIRED COMPONENTS ${REQ_CATKIN_PKGS})
 
