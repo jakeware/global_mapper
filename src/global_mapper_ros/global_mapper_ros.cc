@@ -34,6 +34,8 @@ GlobalMapperRos::GlobalMapperRos(volatile std::sig_atomic_t* stop_signal_ptr)
 }
 
 void GlobalMapperRos::GetParams() {
+  fla_utils::SafeGetParam(pnh_, "map_frame", params_.map_frame);
+
   // pixel map params
   std::vector<double> pixel_xy_min(2, 0.0);
   fla_utils::SafeGetParam(pnh_, "pixel_map/xy_min", pixel_xy_min);
@@ -143,7 +145,7 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
     visualization_msgs::Marker& marker = marker_array->markers[i];
 
     // create voxel marker
-    marker.header.frame_id = "world";
+    marker.header.frame_id = params_.map_frame;
     marker.header.stamp = ros::Time::now();
     marker.id = i;
     marker.type = visualization_msgs::Marker::CUBE;
@@ -185,7 +187,7 @@ void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_gri
   }
 
   // header
-  occupancy_grid->header.frame_id = "world";
+  occupancy_grid->header.frame_id = params_.map_frame;
   occupancy_grid->header.stamp = ros::Time::now();
 
   // metadata
@@ -232,7 +234,7 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
 
 void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr) {
   // get transform
-  const std::string target_frame = "world";
+  const std::string target_frame = params_.map_frame;
   geometry_msgs::TransformStamped transform_stamped;
   // try to get correct transform
   try {

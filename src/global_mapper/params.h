@@ -2,11 +2,13 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 namespace global_mapper {
 struct Params {
-  Params()
-  : pixel_xy_min{0.0, 0.0},
+  Params() :
+    map_frame(""),
+    pixel_xy_min{0.0, 0.0},
     pixel_xy_max{0.0, 0.0},
     pixel_resolution(0.0),
     pixel_init_value(0.0),
@@ -32,6 +34,8 @@ struct Params {
     voxel_miss_inc(0.0) {
       // nothing
     }
+
+  std::string map_frame;
 
   // pixel map
   double pixel_xy_min[2];
