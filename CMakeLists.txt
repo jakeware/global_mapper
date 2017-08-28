@@ -32,7 +32,7 @@ find_package(catkin REQUIRED COMPONENTS ${REQ_CATKIN_PKGS})
 
 # find system dependencies
 find_package(PCL 1.7 REQUIRED COMPONENTS common)
-find_package(Eigen3 3.2 EXACT REQUIRED)
+find_package(Eigen3 EXACT REQUIRED)
 find_package(Boost 1.54 REQUIRED)
 
 # add_message_files(...)
