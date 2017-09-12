@@ -152,9 +152,10 @@ void GlobalMapper::Spin() {
 void GlobalMapper::Run() {
   fprintf(stderr, "GlobalMapper::Run");
 
+  printf("min: %0.2f, %0.2f, %0.2f\n", params_.voxel_xyz_min[0], params_.voxel_xyz_min[1], params_.voxel_xyz_min[2]);
   voxel_map_ptr_ = std::make_shared<occ_map::VoxelMap<float> >(params_.voxel_xyz_min,
                                                                params_.voxel_xyz_max,
-                                                               params_.voxel_resolution,
+                                                               params_.voxel_resolution.data(),
                                                                params_.voxel_init_value);
 
   pixel_map_ptr_ = std::make_shared<occ_map::PixelMap<float> >(params_.pixel_xy_min,

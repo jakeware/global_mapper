@@ -3,13 +3,13 @@ map_frame: world
 # pixel map
 pixel_map:
   # min coordinates in world frame [m]
-  xy_min: [0.0, 0.0]  # [m]
+  xy_min: [-100.0, -100.0]  # [m]
 
   # max coordinates in world frame
-  xy_max: [50.0, 50,0]  # [m]
+  xy_max: [100.0, 100,0]  # [m]
 
   # resolution
-  resolution: 0.2  # [m]
+  resolution: 0.5  # [m]
 
   # initial value of cells
   init_value: 0.0
@@ -28,18 +28,18 @@ pixel_map:
   max_z_rel: 0.5  # [m]
 
   # publishing
-  publish_map: true
+  publish_map: false
 
 # voxel map
 voxel_map:
   # min coordinates in world frame
-  xyz_min: [0.0, 0.0, 0.0]  # [m]
+  xyz_min: [-100.0, -100.0, -5.0]  # [m]
 
   # max coordinates in world frame
-  xyz_max: [50.0, 50.0, 10.0]  # [m]
+  xyz_max: [100.0, 100.0, 30.0]  # [m]
 
   # resolution
-  resolution: [0.2, 0.2, 0.2]  # [m]
+  resolution: [1.0, 1.0, 1.0]  # [m]
 
   # initial value of cells
   init_value: 0.0
@@ -49,8 +49,8 @@ voxel_map:
   bound_max: 1.0  # [m]
 
   # absolute position pointcloud cropping
-  min_z_abs: 0.0  # [m]
-  max_z_abs: 10.0  # [m]
+  min_z_abs: -5.0  # [m]
+  max_z_abs: 30.0  # [m]
 
   # relative position pointcloud cropping
   use_rel_cropping: false
@@ -58,8 +58,8 @@ voxel_map:
   max_z_rel: 0.5  # [m]
 
   # probabilistic increments
-  hit_inc: 0.01
-  miss_inc: -0.01
+  hit_inc: 1.0
+  miss_inc: -1.0
 
   # publishing
   publish_map: true

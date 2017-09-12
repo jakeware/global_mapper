@@ -65,9 +65,7 @@ void GlobalMapperRos::GetParams() {
   fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", voxel_xyz_max);
   std::copy(voxel_xyz_max.begin(), voxel_xyz_max.end(), params_.voxel_xyz_max);
 
-  std::vector<double> voxel_resolution(3, 0.0);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", voxel_resolution);
-  std::copy(voxel_resolution.begin(), voxel_resolution.end(), params_.voxel_resolution);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", params_.voxel_resolution);
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params_.voxel_init_value);
   fla_utils::SafeGetParam(pnh_, "voxel_map/bound_min", params_.voxel_bound_min);
@@ -128,14 +126,34 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
     return;
   }
 
+  geometry_msgs::TransformStamped transform_stamped;
+  Eigen::Vector3d transform;
+  try {
+    transform_stamped = tf_buffer_.lookupTransform("world", "body",
+                                                   ros::Time(0), ros::Duration(1.0));
+
+    transform(0) = transform_stamped.transform.translation.x;
+    transform(1) = transform_stamped.transform.translation.y;
+    transform(2) = transform_stamped.transform.translation.z;
+  } catch (tf2::TransformException &ex) {
+    ROS_WARN("[world_database_master_ros] OnGetTransform failed with %s", ex.what());
+
+    transform(0) = std::numeric_limits<double>::quiet_NaN();
+    transform(1) = std::numeric_limits<double>::quiet_NaN();
+    transform(2) = std::numeric_limits<double>::quiet_NaN();
+  }
+
   // get occuppied voxels
   double xyz[3] = {0.0};
+  Eigen::Map<Eigen::Vector3d> xyz_map(&xyz[0]);
   std::vector<int> occ_inds;
   for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; ++i) {
     global_mapper_ptr_->voxel_map_ptr_->indToLoc(i, xyz);
 
     if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.6) {
-      occ_inds.push_back(i);
+      if((xyz_map - transform).norm() < 20.0) {
+        occ_inds.push_back(i);
+      }
     }
   }
 
