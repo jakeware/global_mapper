@@ -36,7 +36,7 @@ class GlobalMapperRos {
   void GrayscaleToRGBJet(double v, double vmin, double vmax, std::vector<double>* rgb);
 
   // callbacks
-  void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr);
+  void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr);
 
   // publishers
   ros::Publisher pixel_map_pub_;

@@ -8,6 +8,10 @@
 #include <ros/ros.h>
 #include <pcl_ros/transforms.h>
 #include <pcl/conversions.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <geometry_msgs/TransformStamped.h>
+
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -81,7 +85,7 @@ void GlobalMapperRos::GetParams() {
 }
 
 void GlobalMapperRos::InitSubscribers() {
-  point_cloud_sub_ = pnh_.subscribe<pcl::PointCloud<pcl::PointXYZ> >("cloud_topic", 10, &GlobalMapperRos::PointCloudCallback, this);
+  point_cloud_sub_ = pnh_.subscribe("cloud_topic", 10, &GlobalMapperRos::PointCloudCallback, this);
 }
 
 void GlobalMapperRos::InitPublishers() {
@@ -250,51 +254,28 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   }
 }
 
-void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr) {
+void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr) {
   // get transform
   const std::string target_frame = params_.map_frame;
   geometry_msgs::TransformStamped transform_stamped;
   // try to get correct transform
   try {
-    // TODO(jakeware): FIX THIS! WHY THE FUCK DOES THIS NOT WORK?
-    // transform_stamped = tf_buffer_.lookupTransform(target_frame, cloud_ptr->header.frame_id,
-    //                                                ros::Time(cloud_ptr->header.stamp),
-    //                                                ros::Duration(0.1));
-    transform_stamped = tf_buffer_.lookupTransform(target_frame,
-                                                   cloud_ptr->header.frame_id,
-                                                   ros::Time(0));
+    transform_stamped = tf_buffer_.lookupTransform(target_frame, cloud_ptr->header.frame_id,
+                                                   ros::Time(cloud_ptr->header.stamp),
+                                                   ros::Duration(0.02));
   } catch (tf2::TransformException &ex) {
     ROS_WARN("%s", ex.what());
-
-    // try again with latest transform
-    try {
-      transform_stamped = tf_buffer_.lookupTransform(target_frame,
-                                                     cloud_ptr->header.frame_id,
-                                                     ros::Time(0));
-    } catch (tf2::TransformException &ex) {
-      ROS_WARN("%s", ex.what());
-      ros::Duration(1.0).sleep();
-      return;
-    }
+    return;
   }
 
-  // convert transform
-  tf::Transform transform;
-  tf::transformMsgToTF(transform_stamped.transform, transform);
+  sensor_msgs::PointCloud2 cloud_out;
+  tf2::doTransform(*cloud_ptr, cloud_out, transform_stamped);
 
-  // transform pointcloud
-  pcl::PointCloud<pcl::PointXYZ> cloud_trans;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_trans_ptr = cloud_trans.makeShared();
-  pcl_ros::transformPointCloud(*cloud_ptr, *cloud_trans_ptr, transform);
-
-  // set origin of pointcloud
-  // NOTE(jakeware): feel like there must be a better way to do this.
-  cloud_trans_ptr->sensor_origin_[0] = transform_stamped.transform.translation.x;
-  cloud_trans_ptr->sensor_origin_[1] = transform_stamped.transform.translation.y;
-  cloud_trans_ptr->sensor_origin_[2] = transform_stamped.transform.translation.z;
-
-  // push to mapper
-  global_mapper_ptr_->PushPointCloud(cloud_trans_ptr);
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::fromROSMsg(cloud_out, cloud);
+  
+  // // push to mapper
+  global_mapper_ptr_->PushPointCloud(cloud.makeShared());
 }
 
 void GlobalMapperRos::Run() {

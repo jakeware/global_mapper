@@ -27,6 +27,7 @@ set(REQ_CATKIN_PKGS
   tf2_ros
   nav_msgs
   visualization_msgs
+  tf2_sensor_msgs
 )
 find_package(catkin REQUIRED COMPONENTS ${REQ_CATKIN_PKGS})
 
