@@ -91,7 +91,7 @@ void GlobalMapperRos::InitSubscribers() {
 void GlobalMapperRos::InitPublishers() {
   pixel_map_pub_ = pnh_.advertise<nav_msgs::OccupancyGrid>("pixel_map_topic", 1);
   voxel_map_pub_ = pnh_.advertise<visualization_msgs::MarkerArray>("voxel_map_topic", 1);
-  map_pub_timer_ = nh_.createTimer(ros::Duration(1.0), &GlobalMapperRos::PublishMap, this);
+  map_pub_timer_ = nh_.createTimer(ros::Duration(0.2), &GlobalMapperRos::PublishMap, this);
 }
 
 /*
@@ -135,7 +135,6 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
   try {
     transform_stamped = tf_buffer_.lookupTransform("world", "body",
                                                    ros::Time(0), ros::Duration(1.0));
-
     transform(0) = transform_stamped.transform.translation.x;
     transform(1) = transform_stamped.transform.translation.y;
     transform(2) = transform_stamped.transform.translation.z;
@@ -151,12 +150,33 @@ void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marke
   double xyz[3] = {0.0};
   Eigen::Map<Eigen::Vector3d> xyz_map(&xyz[0]);
   std::vector<int> occ_inds;
-  for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; ++i) {
-    global_mapper_ptr_->voxel_map_ptr_->indToLoc(i, xyz);
 
-    if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.6) {
-      if((xyz_map - transform).norm() < 20.0) {
-        occ_inds.push_back(i);
+  int min_ixyz[3];
+  int max_ixyz[3];
+
+  const double subgrid_half_size[3] = {10,10,3};
+
+  const double min_xyz[3] = {transform[0] - subgrid_half_size[0], 
+                       transform[1] - subgrid_half_size[1],
+                       transform[2] - subgrid_half_size[2]};
+
+  const double max_xyz[3] = {transform[0] + subgrid_half_size[0], 
+                       transform[1] + subgrid_half_size[1],
+                       transform[2] + subgrid_half_size[2]};
+
+
+  global_mapper_ptr_->voxel_map_ptr_->worldToTable(min_xyz, min_ixyz);
+  global_mapper_ptr_->voxel_map_ptr_->worldToTable(max_xyz, max_ixyz);
+
+  int voxel_index = 0;
+  for (int x = min_ixyz[0]; x < max_ixyz[0]; x++) {
+    for (int y = min_ixyz[1]; y < max_ixyz[1]; y++) {
+      for (int z = min_ixyz[2]; z < max_ixyz[2]; z++) {
+        int ixyz[3] = {x, y, z};
+        if(global_mapper_ptr_->voxel_map_ptr_->readValue(ixyz) > 0.6) {
+          voxel_index = global_mapper_ptr_->voxel_map_ptr_->getInd(ixyz);
+          occ_inds.push_back(voxel_index);
+        }
       }
     }
   }
@@ -237,12 +257,14 @@ void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_gri
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   // lock
-  std::lock_guard<std::mutex> map_lock(global_mapper_ptr_->map_mutex());
+  // std::lock_guard<std::mutex> map_lock(global_mapper_ptr_->map_mutex());
 
   // voxel map
   if (publish_voxel_map_) {
+    double start_time = ros::Time::now().toSec();
     visualization_msgs::MarkerArray marker_array;
     PopulateVoxelMapMsg(&marker_array);
+    std::cout << "(global_mapper) PopulateVoxelMapMsg took " << ros::Time::now().toSec() - start_time << " seconds" << std::endl;
     voxel_map_pub_.publish(marker_array);
   }
 
@@ -274,7 +296,7 @@ void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPt
   pcl::PointCloud<pcl::PointXYZ> cloud;
   pcl::fromROSMsg(cloud_out, cloud);
   
-  // // push to mapper
+  // push to mapper
   global_mapper_ptr_->PushPointCloud(cloud.makeShared());
 }
 
