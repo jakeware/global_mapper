@@ -303,7 +303,6 @@ void VoxelMap<T>::raytrace(const int start[3], const int end[3], T miss_inc, T h
       voxel[2] += z_inc;
     }
   }
-  updateValue(voxel, hit_inc, clamp_bounds);
 }
 
 template<typename T>
