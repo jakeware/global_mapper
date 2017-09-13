@@ -33,13 +33,13 @@ pixel_map:
 # voxel map
 voxel_map:
   # min coordinates in world frame
-  xyz_min: [-100.0, -100.0, -5.0]  # [m]
+  xyz_min: [-200.0, -200.0, -5.0]  # [m]
 
   # max coordinates in world frame
-  xyz_max: [100.0, 100.0, 30.0]  # [m]
+  xyz_max: [200.0, 200.0, 30.0]  # [m]
 
   # resolution
-  resolution: [1.0, 1.0, 1.0]  # [m]
+  resolution: [0.5, 0.5, 0.5]  # [m]
 
   # initial value of cells
   init_value: 0.0
@@ -58,8 +58,8 @@ voxel_map:
   max_z_rel: 0.5  # [m]
 
   # probabilistic increments
-  hit_inc: 1.0
-  miss_inc: -1.0
+  hit_inc: 0.2
+  miss_inc: -0.01
 
   # publishing
   publish_map: true

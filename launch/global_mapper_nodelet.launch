@@ -22,6 +22,7 @@
       <remap from="~cloud_topic" to="$(arg cloud_topic)" />
       <remap from="~pixel_map_topic" to="$(arg pixel_map_topic)" />
       <remap from="~voxel_map_topic" to="$(arg voxel_map_topic)" />
+      <remap from="~pointcloud_topic" to="~pointcloud" />
     </node>
 
     <!-- nodelet -->
