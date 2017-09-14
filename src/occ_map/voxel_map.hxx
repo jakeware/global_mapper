@@ -17,7 +17,19 @@ VoxelMap<T>::VoxelMap(const double _origin[3], const double _world_dimensions[3]
   num_cells = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
 
   data = new T[num_cells];
+
+  if (!data) {
+    printf("(voxel_map) Error: Failed to allocate memory for map.");
+    exit(1);
+  }
+
   Reset(initValue);
+
+  printf("origin: %0.2f, %0.2f, %0.2f\n", origin[0], origin[1], origin[2]);
+  printf("world_dimensions: %0.2f, %0.2f, %0.2f\n", world_dimensions[0], world_dimensions[1], world_dimensions[2]);
+  printf("resolution: %0.2f, %0.2f, %0.2f\n", resolution[0], resolution[1], resolution[2]);
+  printf("grid_dimensions: %i, %i, %i\n", grid_dimensions[0], grid_dimensions[1], grid_dimensions[2]);
+  printf("num_cells: %i\n", num_cells);
 }
 
 template<typename T>
@@ -88,7 +100,6 @@ inline void VoxelMap<T>::IndexToWorld(int ind, double xyz[3]) const
 template<typename T>
 inline void VoxelMap<T>::WorldToGrid(const double xyz[3], int ixyz[3]) const
 {
-  
   for (int i = 0; i < 3; i++) {
     ixyz[i] = round((xyz[i] - (origin[i] - world_dimensions[i]) * 0.5) / resolution[i]);
   }
@@ -170,7 +181,11 @@ inline void VoxelMap<T>::UpdateValue(const double xyz[3], T value, const T clamp
 {
   int ixyz[3];
   WorldToGrid(xyz, ixyz);
-  UpdateValue(ixyz, value, clamp_bounds);
+  if(IsInMap(ixyz)) {
+    UpdateValue(ixyz, value, clamp_bounds);
+  } else {
+    return;
+  }
 }
 
 template<typename T>
@@ -270,7 +285,11 @@ void VoxelMap<T>::RayTrace(const double start[3], const double end[3], T miss_in
   int iend[3];
   WorldToGrid(start, istart);
   WorldToGrid(end, iend);
-  RayTrace(istart, iend, miss_inc, hit_inc, clamp_bounds);
+  if(IsInMap(istart) && IsInMap(iend)) {
+    RayTrace(istart, iend, miss_inc, hit_inc, clamp_bounds);
+  } else {
+    return;
+  }
 }
 
 template<typename T>

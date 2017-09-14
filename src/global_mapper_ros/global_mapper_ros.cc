@@ -135,7 +135,7 @@ void GlobalMapperRos::PopulatePointCloudMsg(sensor_msgs::PointCloud2* pointcloud
   Eigen::Vector3d transform;
   try {
     transform_stamped = tf_buffer_.lookupTransform("world", "body",
-                                                   ros::Time(0), ros::Duration(1.0));
+                                                   ros::Time(0), ros::Duration(0.02));
     transform(0) = transform_stamped.transform.translation.x;
     transform(1) = transform_stamped.transform.translation.y;
     transform(2) = transform_stamped.transform.translation.z;
@@ -167,29 +167,29 @@ void GlobalMapperRos::PopulatePointCloudMsg(sensor_msgs::PointCloud2* pointcloud
   global_mapper_ptr_->voxel_map_ptr_->WorldToGrid(min_xyz, min_ixyz);
   global_mapper_ptr_->voxel_map_ptr_->WorldToGrid(max_xyz, max_ixyz);
 
-  // int voxel_index = 0;
-  // for (int x = min_ixyz[0]; x < max_ixyz[0]; x++) {
-  //   for (int y = min_ixyz[1]; y < max_ixyz[1]; y++) {
-  //     for (int z = min_ixyz[2]; z < max_ixyz[2]; z++) {
-  //       int ixyz[3] = {x, y, z};
-  //       if(global_mapper_ptr_->voxel_map_ptr_->ReadValue(ixyz) > 0.6) {
-  //         voxel_index = global_mapper_ptr_->voxel_map_ptr_->GetIndex(ixyz);
-  //         occ_inds.push_back(voxel_index);
-  //       }
-  //     }
-  //   }
-  // }
+  int voxel_index = 0;
+  for (int x = min_ixyz[0]; x < max_ixyz[0]; x++) {
+    for (int y = min_ixyz[1]; y < max_ixyz[1]; y++) {
+      for (int z = min_ixyz[2]; z < max_ixyz[2]; z++) {
+        int ixyz[3] = {x, y, z};
+        if(global_mapper_ptr_->voxel_map_ptr_->ReadValue(ixyz) > 0.6) {
+          voxel_index = global_mapper_ptr_->voxel_map_ptr_->GetIndex(ixyz);
+          occ_inds.push_back(voxel_index);
+        }
+      }
+    }
+  }
 
-  // double xyz[3] = {0.0};
-  // pcl::PointCloud<pcl::PointXYZ> cloud;
-  // for (int i = 0; i < occ_inds.size(); ++i) {
-  //   global_mapper_ptr_->voxel_map_ptr_->IndexToWorld(occ_inds[i], xyz);
-  //   cloud.push_back(pcl::PointXYZ(xyz[0], xyz[1], xyz[2]));
-  // }
+  double xyz[3] = {0.0};
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  for (int i = 0; i < occ_inds.size(); ++i) {
+    global_mapper_ptr_->voxel_map_ptr_->IndexToWorld(occ_inds[i], xyz);
+    cloud.push_back(pcl::PointXYZ(xyz[0], xyz[1], xyz[2]));
+  }
 
-  // pcl::toROSMsg(cloud, *pointcloud);
-  // pointcloud->header.frame_id = "world";
-  // pointcloud->header.stamp = ros::Time::now();
+  pcl::toROSMsg(cloud, *pointcloud);
+  pointcloud->header.frame_id = "world";
+  pointcloud->header.stamp = ros::Time::now();
 }
 
 void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_grid) {
@@ -231,12 +231,6 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
 
   // voxel map
   if (publish_voxel_map_) {
-    // double start_time = ros::Time::now().toSec();
-    // visualization_msgs::MarkerArray marker_array;
-    // PopulateVoxelMapMsg(&marker_array);
-    // std::cout << "(global_mapper_ros) PopulateVoxelMapMsg took " << ros::Time::now().toSec() - start_time << " seconds" << std::endl;
-    // voxel_map_pub_.publish(marker_array);
-
     double start_time = ros::Time::now().toSec();
     sensor_msgs::PointCloud2 pointcloud_msg;
     PopulatePointCloudMsg(&pointcloud_msg);

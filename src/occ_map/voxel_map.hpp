@@ -25,6 +25,10 @@ class VoxelMap {
   // set all values in the map to 0
   void Reset(T resetVal = T());
 
+  inline void GetGridDimensions(int dimensions[3]) {
+    memcpy(dimensions, grid_dimensions, 3 * sizeof(double));
+  }
+
   // convert from world coordinates into the map
   inline void WorldToGrid(const double xyz[3], int ixyz[3]) const;
 
@@ -55,10 +59,6 @@ class VoxelMap {
   bool CollisionCheck(const int start[3], const int end[3], T occ_thresh, int collisionPoint[3] = NULL) const;
   bool CollisionCheck(const double start[3], const double end[3], T occ_thresh, double collisionPoint[3] = NULL) const;
 
- private:
-  template<class F>
-  inline F clamp_value(F x, F min, F max) const;
-
   //get linear index into storage arrays
   inline int GetIndex(const int ixyz[3]) const;
   inline int GetIndex(const double xyz[3]) const;
@@ -66,6 +66,10 @@ class VoxelMap {
   // Map backwards from an index to a location
   inline void IndexToGrid(int ind, int ixyz[3]) const;
   inline void IndexToWorld(int ind, double xyz[3]) const;
+ private:
+  template<class F>
+  inline F clamp_value(F x, F min, F max) const;
+
   
   //metadata
   double origin[3];

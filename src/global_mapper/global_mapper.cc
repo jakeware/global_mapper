@@ -155,10 +155,10 @@ void GlobalMapper::Run() {
                                                                params_.voxel_resolution.data(),
                                                                params_.voxel_init_value);
 
-  pixel_map_ptr_ = std::make_shared<occ_map::PixelMap<float> >(params_.pixel_xy_min,
-                                                                params_.pixel_xy_max,
-                                                                params_.pixel_resolution,
-                                                                params_.pixel_init_value);
+  // pixel_map_ptr_ = std::make_shared<occ_map::PixelMap<float> >(params_.pixel_xy_min,
+  //                                                               params_.pixel_xy_max,
+  //                                                               params_.pixel_resolution,
+  //                                                               params_.pixel_init_value);
 
   thread_ = std::thread(&GlobalMapper::Spin, this);
 }
