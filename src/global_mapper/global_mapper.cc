@@ -77,7 +77,7 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
     end[0] = cloud_ptr->points[i].x;
     end[1] = cloud_ptr->points[i].y;
     end[2] = cloud_ptr->points[i].z;
-    voxel_map_ptr_->raytrace(start, end, params_.voxel_miss_inc, params_.voxel_hit_inc, clamp_bounds);
+    voxel_map_ptr_->RayTrace(start, end, params_.voxel_miss_inc, params_.voxel_hit_inc, clamp_bounds);
   }
 
   for (int i = 0; i < cloud_ptr->points.size(); i++) {
@@ -85,52 +85,52 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
     end[0] = cloud_ptr->points[i].x;
     end[1] = cloud_ptr->points[i].y;
     end[2] = cloud_ptr->points[i].z;
-    voxel_map_ptr_->updateValue(end, params_.voxel_hit_inc, clamp_bounds);
+    voxel_map_ptr_->UpdateValue(end, params_.voxel_hit_inc, clamp_bounds);
   }
   std::cout << "(global_mapper) InsertPointCloud took " << ros::Time::now().toSec() - start_time << " seconds" << std::endl;
 }
 
 void GlobalMapper::FlattenMap() {
-  int ixyz[3] = {0};
-  double xyz[3] = {0.0};
-  double xy[2] = {0.0};
-  float occ = 0.0;
-  float occ_temp = 0.0;
-  for (int i = 0; i < voxel_map_ptr_->dimensions[0]; ++i) {
-    ixyz[0] = i;
+  // int ixyz[3] = {0};
+  // double xyz[3] = {0.0};
+  // double xy[2] = {0.0};
+  // float occ = 0.0;
+  // float occ_temp = 0.0;
+  // for (int i = 0; i < voxel_map_ptr_->dimensions[0]; ++i) {
+  //   ixyz[0] = i;
 
-    for (int j = 0; j < voxel_map_ptr_->dimensions[1]; ++j) {
-      ixyz[1] = j;
+  //   for (int j = 0; j < voxel_map_ptr_->dimensions[1]; ++j) {
+  //     ixyz[1] = j;
 
-      // reset mean
-      occ = 0.0;
-      occ_temp = 0.0;
+  //     // reset mean
+  //     occ = 0.0;
+  //     occ_temp = 0.0;
 
-      for (int k = 0; k < voxel_map_ptr_->dimensions[2]; ++k) {
-        ixyz[2] = k;
+  //     for (int k = 0; k < voxel_map_ptr_->dimensions[2]; ++k) {
+  //       ixyz[2] = k;
 
-        // get coordinates from voxel_map
-        voxel_map_ptr_->tableToWorld(ixyz, xyz);
+  //       // get coordinates from voxel_map
+  //       voxel_map_ptr_->GridToWorld(ixyz, xyz);
 
-        // check bounds
-        if (xyz[2] < params_.pixel_min_z_abs ||
-            xyz[2] > params_.pixel_max_z_abs) {
-          continue;
-        }
+  //       // check bounds
+  //       if (xyz[2] < params_.pixel_min_z_abs ||
+  //           xyz[2] > params_.pixel_max_z_abs) {
+  //         continue;
+  //       }
 
-        // get max over z
-        occ_temp = voxel_map_ptr_->readValue(ixyz);
-        if (occ_temp > occ) {
-          occ = occ_temp;
-        }
-      }
+  //       // get max over z
+  //       occ_temp = voxel_map_ptr_->ReadValue(ixyz);
+  //       if (occ_temp > occ) {
+  //         occ = occ_temp;
+  //       }
+  //     }
 
-      // insert into pixel map by position
-      xy[0] = xyz[0];
-      xy[1] = xyz[1];
-      pixel_map_ptr_->writeValue(xy, occ);
-    }
-  }
+  //     // insert into pixel map by position
+  //     xy[0] = xyz[0];
+  //     xy[1] = xyz[1];
+  //     pixel_map_ptr_->WriteValue(xy, occ);
+  //   }
+  // }
 }
 
 void GlobalMapper::Spin() {

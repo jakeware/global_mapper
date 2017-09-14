@@ -125,104 +125,6 @@ void GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, double vmax, std:
   }
 }
 
-void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marker_array) {
-  // check for bad input
-  if (marker_array == nullptr) {
-    return;
-  }
-
-  geometry_msgs::TransformStamped transform_stamped;
-  Eigen::Vector3d transform;
-  try {
-    transform_stamped = tf_buffer_.lookupTransform("world", "body",
-                                                   ros::Time(0), ros::Duration(1.0));
-    transform(0) = transform_stamped.transform.translation.x;
-    transform(1) = transform_stamped.transform.translation.y;
-    transform(2) = transform_stamped.transform.translation.z;
-  } catch (tf2::TransformException &ex) {
-    ROS_WARN("[world_database_master_ros] OnGetTransform failed with %s", ex.what());
-
-    transform(0) = std::numeric_limits<double>::quiet_NaN();
-    transform(1) = std::numeric_limits<double>::quiet_NaN();
-    transform(2) = std::numeric_limits<double>::quiet_NaN();
-  }
-
-  // get occuppied voxels
-  double xyz[3] = {0.0};
-  Eigen::Map<Eigen::Vector3d> xyz_map(&xyz[0]);
-  std::vector<int> occ_inds;
-
-  int min_ixyz[3];
-  int max_ixyz[3];
-
-  const double subgrid_half_size[3] = {30,30,3};
-
-  const double min_xyz[3] = {transform[0] - subgrid_half_size[0], 
-                       transform[1] - subgrid_half_size[1],
-                       transform[2] - subgrid_half_size[2]};
-
-  const double max_xyz[3] = {transform[0] + subgrid_half_size[0], 
-                       transform[1] + subgrid_half_size[1],
-                       transform[2] + subgrid_half_size[2]};
-
-
-  global_mapper_ptr_->voxel_map_ptr_->worldToTable(min_xyz, min_ixyz);
-  global_mapper_ptr_->voxel_map_ptr_->worldToTable(max_xyz, max_ixyz);
-
-  int voxel_index = 0;
-  for (int x = min_ixyz[0]; x < max_ixyz[0]; x++) {
-    for (int y = min_ixyz[1]; y < max_ixyz[1]; y++) {
-      for (int z = min_ixyz[2]; z < max_ixyz[2]; z++) {
-        int ixyz[3] = {x, y, z};
-        if(global_mapper_ptr_->voxel_map_ptr_->readValue(ixyz) > 0.6) {
-          voxel_index = global_mapper_ptr_->voxel_map_ptr_->getInd(ixyz);
-          occ_inds.push_back(voxel_index);
-        }
-      }
-    }
-  }
-
-  marker_array->markers.resize(occ_inds.size());
-  std::vector<double> rgb(3, 1.0);
-  for (int i = 0; i < occ_inds.size(); ++i) {
-    visualization_msgs::Marker& marker = marker_array->markers[i];
-
-    // create voxel marker
-    marker.header.frame_id = params_.map_frame;
-    marker.header.stamp = ros::Time::now();
-    marker.id = i;
-    marker.type = visualization_msgs::Marker::CUBE;
-    marker.action = visualization_msgs::Marker::ADD;
-
-    // orientation
-    marker.pose.orientation.x = 0.0;
-    marker.pose.orientation.y = 0.0;
-    marker.pose.orientation.z = 0.0;
-    marker.pose.orientation.w = 1.0;
-
-    // scale
-    marker.scale.x = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[0];
-    marker.scale.y = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[1];
-    marker.scale.z = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[2];
-
-    // position
-    global_mapper_ptr_->voxel_map_ptr_->indToLoc(occ_inds[i], xyz);
-    marker.pose.position.x = xyz[0];
-    marker.pose.position.y = xyz[1];
-    marker.pose.position.z = xyz[2];
-
-    // color
-    GrayscaleToRGBJet(marker.pose.position.z,
-                      global_mapper_ptr_->voxel_map_ptr_->xyz0[2],
-                      global_mapper_ptr_->voxel_map_ptr_->xyz1[2],
-                      &rgb);
-    marker.color.r = static_cast<float>(rgb[0]);
-    marker.color.g = static_cast<float>(rgb[1]);
-    marker.color.b = static_cast<float>(rgb[2]);
-    marker.color.a = 1.0f;
-  }
-}
-
 void GlobalMapperRos::PopulatePointCloudMsg(sensor_msgs::PointCloud2* pointcloud) {
   // check for bad input
   if (pointcloud == nullptr) {
@@ -262,65 +164,65 @@ void GlobalMapperRos::PopulatePointCloudMsg(sensor_msgs::PointCloud2* pointcloud
                        transform[2] + subgrid_half_size[2]};
 
 
-  global_mapper_ptr_->voxel_map_ptr_->worldToTable(min_xyz, min_ixyz);
-  global_mapper_ptr_->voxel_map_ptr_->worldToTable(max_xyz, max_ixyz);
+  global_mapper_ptr_->voxel_map_ptr_->WorldToGrid(min_xyz, min_ixyz);
+  global_mapper_ptr_->voxel_map_ptr_->WorldToGrid(max_xyz, max_ixyz);
 
-  int voxel_index = 0;
-  for (int x = min_ixyz[0]; x < max_ixyz[0]; x++) {
-    for (int y = min_ixyz[1]; y < max_ixyz[1]; y++) {
-      for (int z = min_ixyz[2]; z < max_ixyz[2]; z++) {
-        int ixyz[3] = {x, y, z};
-        if(global_mapper_ptr_->voxel_map_ptr_->readValue(ixyz) > 0.6) {
-          voxel_index = global_mapper_ptr_->voxel_map_ptr_->getInd(ixyz);
-          occ_inds.push_back(voxel_index);
-        }
-      }
-    }
-  }
+  // int voxel_index = 0;
+  // for (int x = min_ixyz[0]; x < max_ixyz[0]; x++) {
+  //   for (int y = min_ixyz[1]; y < max_ixyz[1]; y++) {
+  //     for (int z = min_ixyz[2]; z < max_ixyz[2]; z++) {
+  //       int ixyz[3] = {x, y, z};
+  //       if(global_mapper_ptr_->voxel_map_ptr_->ReadValue(ixyz) > 0.6) {
+  //         voxel_index = global_mapper_ptr_->voxel_map_ptr_->GetIndex(ixyz);
+  //         occ_inds.push_back(voxel_index);
+  //       }
+  //     }
+  //   }
+  // }
 
-  double xyz[3] = {0.0};
-  pcl::PointCloud<pcl::PointXYZ> cloud;
-  for (int i = 0; i < occ_inds.size(); ++i) {
-    global_mapper_ptr_->voxel_map_ptr_->indToLoc(occ_inds[i], xyz);
-    cloud.push_back(pcl::PointXYZ(xyz[0], xyz[1], xyz[2]));
-  }
+  // double xyz[3] = {0.0};
+  // pcl::PointCloud<pcl::PointXYZ> cloud;
+  // for (int i = 0; i < occ_inds.size(); ++i) {
+  //   global_mapper_ptr_->voxel_map_ptr_->IndexToWorld(occ_inds[i], xyz);
+  //   cloud.push_back(pcl::PointXYZ(xyz[0], xyz[1], xyz[2]));
+  // }
 
-  pcl::toROSMsg(cloud, *pointcloud);
-  pointcloud->header.frame_id = "world";
-  pointcloud->header.stamp = ros::Time::now();
+  // pcl::toROSMsg(cloud, *pointcloud);
+  // pointcloud->header.frame_id = "world";
+  // pointcloud->header.stamp = ros::Time::now();
 }
 
 void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_grid) {
-  // check for bad input
-  if (occupancy_grid == nullptr) {
-    return;
-  }
+  // // check for bad input
+  // if (occupancy_grid == nullptr) {
+  //   return;
+  // }
 
-  // header
-  occupancy_grid->header.frame_id = params_.map_frame;
-  occupancy_grid->header.stamp = ros::Time::now();
+  // // header
+  // occupancy_grid->header.frame_id = params_.map_frame;
+  // occupancy_grid->header.stamp = ros::Time::now();
 
-  // metadata
-  occupancy_grid->info.resolution = global_mapper_ptr_->pixel_map_ptr_->metersPerPixel;
-  occupancy_grid->info.width = global_mapper_ptr_->pixel_map_ptr_->dimensions[0];
-  occupancy_grid->info.height = global_mapper_ptr_->pixel_map_ptr_->dimensions[1];
-  occupancy_grid->info.origin.position.x = 0.0;
-  occupancy_grid->info.origin.position.y = 0.0;
-  occupancy_grid->info.origin.position.z = 0.0;
+  // // metadata
+  // occupancy_grid->info.resolution = global_mapper_ptr_->pixel_map_ptr_->metersPerPixel;
+  // occupancy_grid->info.width = global_mapper_ptr_->pixel_map_ptr_->dimensions[0];
+  // occupancy_grid->info.height = global_mapper_ptr_->pixel_map_ptr_->dimensions[1];
+  // occupancy_grid->info.origin.position.x = 0.0;
+  // occupancy_grid->info.origin.position.y = 0.0;
+  // occupancy_grid->info.origin.position.z = 0.0;
 
-  // data
-  float occ_value = 0.0;
-  double xy[2] = {0.0};
-  occupancy_grid->data.resize(global_mapper_ptr_->pixel_map_ptr_->num_cells);
-  for (int i = 0; i < global_mapper_ptr_->pixel_map_ptr_->num_cells; ++i) {
-    // get xy location
-    global_mapper_ptr_->pixel_map_ptr_->indToLoc(i, xy);
+  // // data
+  // float occ_value = 0.0;
+  // double xy[2] = {0.0};
+  // occupancy_grid->data.resize(global_mapper_ptr_->pixel_map_ptr_->num_cells);
+  // for (int i = 0; i < global_mapper_ptr_->pixel_map_ptr_->num_cells; ++i) {
+  //   // get xy location
+  //   global_mapper_ptr_->pixel_map_ptr_->IndexToWorld(i, xy);
 
-    // get pixel value and scale
-    occ_value = global_mapper_ptr_->pixel_map_ptr_->readValue(xy);
-    occ_value *= 100.0;
-    occupancy_grid->data[i] = static_cast<uint8_t>(occ_value + 0.5);
-  }
+  //   // get pixel value and scale
+  //   occ_value = global_mapper_ptr_->pixel_map_ptr_->ReadValue(xy);
+  //   occ_value *= 100.0;
+  //   occupancy_grid->data[i] = static_cast<uint8_t>(occ_value + 0.5);
+  // }
 }
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {

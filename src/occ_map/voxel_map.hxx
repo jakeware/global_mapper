@@ -7,9 +7,6 @@ VoxelMap<T>::VoxelMap(const double _xyz0[3], const double _xyz1[3], const double
     bool allocate_data) :
     data(NULL)
 {
-#ifndef NO_LCM
-  msg = NULL;
-#endif
   memcpy(xyz0, _xyz0, 3 * sizeof(double));
   memcpy(xyz1, _xyz1, 3 * sizeof(double));
   memcpy(metersPerPixel, _metersPerPixel, 3 * sizeof(double));
@@ -22,7 +19,7 @@ VoxelMap<T>::VoxelMap(const double _xyz0[3], const double _xyz1[3], const double
   }
   if (allocate_data) {
     data = new T[num_cells];
-    reset(initValue);
+    Reset(initValue);
   }
 }
 
@@ -30,9 +27,6 @@ template<typename T>
 template<class F>
 VoxelMap<T>::VoxelMap(const VoxelMap<F> * to_copy, bool copyData, T (*transformFunc)(F))
 {
-#ifndef NO_LCM
-  msg = NULL;
-#endif
   memcpy(xyz0, to_copy->xyz0, 3 * sizeof(double));
   memcpy(xyz1, to_copy->xyz1, 3 * sizeof(double));
   memcpy(metersPerPixel, to_copy->metersPerPixel, 3 * sizeof(double));
@@ -48,68 +42,38 @@ VoxelMap<T>::VoxelMap(const VoxelMap<F> * to_copy, bool copyData, T (*transformF
       for (ixyz[1] = 0; ixyz[1] < dimensions[1]; ixyz[1]++) {
         for (ixyz[0] = 0; ixyz[0] < dimensions[0]; ixyz[0]++) {
           if (transformFunc != NULL)
-            writeValue(ixyz, transformFunc(to_copy->readValue(ixyz)));
+            WriteValue(ixyz, transformFunc(to_copy->ReadValue(ixyz)));
           else
-            writeValue(ixyz, to_copy->readValue(ixyz));
+            WriteValue(ixyz, to_copy->ReadValue(ixyz));
         }
       }
     }
   }
 }
 
-#ifndef NO_LCM
-template<typename T>
-VoxelMap<T>::VoxelMap(const occ_map_voxel_map_t * _msg) :
-    msg(NULL)
-{
-  set_from_voxel_map_t(_msg);
-}
-
-template<typename T>
-VoxelMap<T>::VoxelMap(const std::string & name) :
-    msg(NULL), data(NULL)
-{
-  std::ifstream ifs(name.c_str(), std::ios::binary);
-  int sz;
-  ifs >> sz;
-  char * data = (char *) malloc(sz * sizeof(char));
-  ifs.read(data, sz * sizeof(char));
-  ifs.close();
-  occ_map_voxel_map_t tmpmsg;
-  occ_map_voxel_map_t_decode(data, 0, sz, &tmpmsg);
-  set_from_voxel_map_t(&tmpmsg);
-  occ_map_voxel_map_t_decode_cleanup(&tmpmsg);
-  free(data);
-}
-#endif
-
 template<typename T>
 VoxelMap<T>::~VoxelMap()
 {
   if (data != NULL)
     delete[] data;
-#ifndef NO_LCM
-  if (msg != NULL)
-    occ_map_voxel_map_t_destroy (msg);
-#endif
 }
 
 //get linear index into storage arrays
 template<typename T>
-inline int VoxelMap<T>::getInd(const int ixyz[3]) const
+inline int VoxelMap<T>::GetIndex(const int ixyz[3]) const
     {
   return ixyz[2] * (dimensions[0] * dimensions[1]) + ixyz[1] * dimensions[0] + ixyz[0];
 }
 template<typename T>
-inline int VoxelMap<T>::getInd(const double xyz[3]) const
+inline int VoxelMap<T>::GetIndex(const double xyz[3]) const
     {
   int ixyz[3];
-  worldToTable(xyz, ixyz);
-  return getInd(ixyz);
+  WorldToGrid(xyz, ixyz);
+  return GetIndex(ixyz);
 }
 
 template<typename T>
-inline void VoxelMap<T>::indToLoc(int ind, int ixyz[3]) const
+inline void VoxelMap<T>::IndexToGrid(int ind, int ixyz[3]) const
     {
   ixyz[2] = ind / (dimensions[0] * dimensions[1]);
   ind -= ixyz[2] * (dimensions[0] * dimensions[1]);
@@ -118,15 +82,15 @@ inline void VoxelMap<T>::indToLoc(int ind, int ixyz[3]) const
   ixyz[0] = ind;
 }
 template<typename T>
-inline void VoxelMap<T>::indToLoc(int ind, double xyz[3]) const
+inline void VoxelMap<T>::IndexToWorld(int ind, double xyz[3]) const
     {
   int ixyz[3];
-  indToLoc(ind, ixyz);
-  tableToWorld(ixyz, xyz);
+  IndexToGrid(ind, ixyz);
+  GridToWorld(ixyz, xyz);
 }
 
 template<typename T>
-inline bool VoxelMap<T>::worldToTable(const double xyz[3], int ixyz[3]) const
+inline bool VoxelMap<T>::WorldToGrid(const double xyz[3], int ixyz[3]) const
     {
   bool clamped = false;
   for (int i = 0; i < 3; i++) {
@@ -140,14 +104,14 @@ inline bool VoxelMap<T>::worldToTable(const double xyz[3], int ixyz[3]) const
 }
 
 template<typename T>
-inline void VoxelMap<T>::tableToWorld(const int ixyz[3], double * xyz) const
+inline void VoxelMap<T>::GridToWorld(const int ixyz[3], double * xyz) const
     {
   for (int i = 0; i < 3; i++)
     xyz[i] = ((double) ixyz[i]) * metersPerPixel[i] + xyz0[i];
 }
 
 template<typename T>
-inline bool VoxelMap<T>::isInMap(const int ixyz[3]) const
+inline bool VoxelMap<T>::IsInMap(const int ixyz[3]) const
     {
   for (int i = 0; i < 3; i++)
     if (ixyz[i] < 0 || ixyz[i] >= dimensions[i])
@@ -155,7 +119,7 @@ inline bool VoxelMap<T>::isInMap(const int ixyz[3]) const
   return true;
 }
 template<typename T>
-inline bool VoxelMap<T>::isInMap(const double xyz[3]) const
+inline bool VoxelMap<T>::IsInMap(const double xyz[3]) const
     {
   for (int i = 0; i < 3; i++)
     if (xyz[i] < xyz0[i] || xyz[i] > xyz1[i])
@@ -164,7 +128,7 @@ inline bool VoxelMap<T>::isInMap(const double xyz[3]) const
 }
 
 template<typename T>
-void VoxelMap<T>::reset(T resetVal)
+void VoxelMap<T>::Reset(T resetVal)
 {
   if (data != NULL)
     for (int i = 0; i < num_cells; i++)
@@ -172,35 +136,35 @@ void VoxelMap<T>::reset(T resetVal)
 }
 
 template<typename T>
-inline T VoxelMap<T>::readValue(const int ixyz[3]) const
+inline T VoxelMap<T>::ReadValue(const int ixyz[3]) const
     {
-  int ind = getInd(ixyz);
+  int ind = GetIndex(ixyz);
   return data[ind];
 }
 template<typename T>
-inline float VoxelMap<T>::readValue(const double xyz[3]) const
+inline float VoxelMap<T>::ReadValue(const double xyz[3]) const
     {
   int ixyz[3];
-  worldToTable(xyz, ixyz);
-  return readValue(ixyz);
+  WorldToGrid(xyz, ixyz);
+  return ReadValue(ixyz);
 }
 template<typename T>
-inline void VoxelMap<T>::writeValue(const int ixyz[3], T value)
+inline void VoxelMap<T>::WriteValue(const int ixyz[3], T value)
 {
-  int ind = getInd(ixyz);
+  int ind = GetIndex(ixyz);
   data[ind] = value;
 }
 template<typename T>
-inline void VoxelMap<T>::writeValue(const double xyz[3], T value)
+inline void VoxelMap<T>::WriteValue(const double xyz[3], T value)
 {
   int ixyz[3];
-  worldToTable(xyz, ixyz);
-  writeValue(ixyz, value);
+  WorldToGrid(xyz, ixyz);
+  WriteValue(ixyz, value);
 }
 template<typename T>
-inline void VoxelMap<T>::updateValue(const int ixyz[3], T value, const T clamp_bounds[2])
+inline void VoxelMap<T>::UpdateValue(const int ixyz[3], T value, const T clamp_bounds[2])
 {
-  int ind = getInd(ixyz);
+  int ind = GetIndex(ixyz);
   data[ind] += value;
   if (clamp_bounds != NULL) {
     data[ind] = clamp_value(data[ind], clamp_bounds[0], clamp_bounds[1]);
@@ -208,15 +172,15 @@ inline void VoxelMap<T>::updateValue(const int ixyz[3], T value, const T clamp_b
 
 }
 template<typename T>
-inline void VoxelMap<T>::updateValue(const double xyz[3], T value, const T clamp_bounds[2])
+inline void VoxelMap<T>::UpdateValue(const double xyz[3], T value, const T clamp_bounds[2])
 {
   int ixyz[3];
-  worldToTable(xyz, ixyz);
-  updateValue(ixyz, value, clamp_bounds);
+  WorldToGrid(xyz, ixyz);
+  UpdateValue(ixyz, value, clamp_bounds);
 }
 
 template<typename T>
-void VoxelMap<T>::raytrace(const int start[3], const int end[3], T miss_inc, T hit_inc, const T clamp_bounds[2])
+void VoxelMap<T>::RayTrace(const int start[3], const int end[3], T miss_inc, T hit_inc, const T clamp_bounds[2])
 {
   //3D Bresenham implimentation copied from:
   //http://www.cit.griffith.edu.au/~anthony/info/graphics/bresenham.procs
@@ -252,7 +216,7 @@ void VoxelMap<T>::raytrace(const int start[3], const int end[3], T miss_inc, T h
     err_1 = dy2 - l;
     err_2 = dz2 - l;
     for (i = 0; i < l; i++) {
-      updateValue(voxel, miss_inc, clamp_bounds);
+      UpdateValue(voxel, miss_inc, clamp_bounds);
       if (err_1 > 0) {
         voxel[1] += y_inc;
         err_1 -= dx2;
@@ -270,7 +234,7 @@ void VoxelMap<T>::raytrace(const int start[3], const int end[3], T miss_inc, T h
     err_1 = dx2 - m;
     err_2 = dz2 - m;
     for (i = 0; i < m; i++) {
-      updateValue(voxel, miss_inc, clamp_bounds);
+      UpdateValue(voxel, miss_inc, clamp_bounds);
       if (err_1 > 0) {
         voxel[0] += x_inc;
         err_1 -= dy2;
@@ -288,7 +252,7 @@ void VoxelMap<T>::raytrace(const int start[3], const int end[3], T miss_inc, T h
     err_1 = dy2 - n;
     err_2 = dx2 - n;
     for (i = 0; i < n; i++) {
-      updateValue(voxel, miss_inc, clamp_bounds);
+      UpdateValue(voxel, miss_inc, clamp_bounds);
 
       if (err_1 > 0) {
         voxel[1] += y_inc;
@@ -306,17 +270,17 @@ void VoxelMap<T>::raytrace(const int start[3], const int end[3], T miss_inc, T h
 }
 
 template<typename T>
-void VoxelMap<T>::raytrace(const double start[3], const double end[3], T miss_inc, T hit_inc, const T clamp_bounds[2])
+void VoxelMap<T>::RayTrace(const double start[3], const double end[3], T miss_inc, T hit_inc, const T clamp_bounds[2])
 {
   int istart[3];
   int iend[3];
-  worldToTable(start, istart);
-  worldToTable(end, iend);
-  raytrace(istart, iend, miss_inc, hit_inc, clamp_bounds);
+  WorldToGrid(start, istart);
+  WorldToGrid(end, iend);
+  RayTrace(istart, iend, miss_inc, hit_inc, clamp_bounds);
 }
 
 template<typename T>
-bool VoxelMap<T>::collisionCheck(const int start[3], const int end[3], T occ_thresh, int collisionPoint[3]) const
+bool VoxelMap<T>::CollisionCheck(const int start[3], const int end[3], T occ_thresh, int collisionPoint[3]) const
     {
   bool collision = false;
   //3D Bresenham implimentation copied from:
@@ -353,7 +317,7 @@ bool VoxelMap<T>::collisionCheck(const int start[3], const int end[3], T occ_thr
     err_1 = dy2 - l;
     err_2 = dz2 - l;
     for (i = 0; i < l; i++) {
-      if (readValue(voxel) > occ_thresh) {
+      if (ReadValue(voxel) > occ_thresh) {
         collision = true;
         break;
       }
@@ -374,7 +338,7 @@ bool VoxelMap<T>::collisionCheck(const int start[3], const int end[3], T occ_thr
     err_1 = dx2 - m;
     err_2 = dz2 - m;
     for (i = 0; i < m; i++) {
-      if (readValue(voxel) > occ_thresh) {
+      if (ReadValue(voxel) > occ_thresh) {
         collision = true;
         break;
       }
@@ -395,7 +359,7 @@ bool VoxelMap<T>::collisionCheck(const int start[3], const int end[3], T occ_thr
     err_1 = dy2 - n;
     err_2 = dx2 - n;
     for (i = 0; i < n; i++) {
-      if (readValue(voxel) > occ_thresh) {
+      if (ReadValue(voxel) > occ_thresh) {
         collision = true;
         break;
       }
@@ -413,7 +377,7 @@ bool VoxelMap<T>::collisionCheck(const int start[3], const int end[3], T occ_thr
       voxel[2] += z_inc;
     }
   }
-  if (readValue(voxel) > occ_thresh) {
+  if (ReadValue(voxel) > occ_thresh) {
     collision = true;
   }
   if (collisionPoint != NULL) {
@@ -424,119 +388,15 @@ bool VoxelMap<T>::collisionCheck(const int start[3], const int end[3], T occ_thr
 }
 
 template<typename T>
-bool VoxelMap<T>::collisionCheck(const double start[3], const double end[3], T occ_thresh,
+bool VoxelMap<T>::CollisionCheck(const double start[3], const double end[3], T occ_thresh,
     double collisionPoint[3]) const
     {
   int istart[3];
   int iend[3];
-  worldToTable(start, istart);
-  worldToTable(end, iend);
-  collisionCheck(istart, iend, occ_thresh, collisionPoint);
+  WorldToGrid(start, istart);
+  WorldToGrid(end, iend);
+  CollisionCheck(istart, iend, occ_thresh, collisionPoint);
 }
-
-#ifndef NO_LCM
-template<typename T>
-const occ_map_voxel_map_t * VoxelMap<T>::get_voxel_map_t(int64_t utime)
-{
-  if (msg == NULL)
-    msg = (occ_map_voxel_map_t *) calloc(1, sizeof(occ_map_voxel_map_t));
-
-  memcpy(msg->xyz0, xyz0, 3 * sizeof(double));
-  memcpy(msg->xyz1, xyz1, 3 * sizeof(double));
-  memcpy(msg->mpp, metersPerPixel, 3 * sizeof(double));
-  memcpy(msg->dimensions, dimensions, 3 * sizeof(int));
-
-  uLong uncompressed_size = num_cells * sizeof(T);
-  uLong compress_buf_size = uncompressed_size * 1.01 + 12; //with extra space for zlib
-  msg->mapData = (uint8_t *) realloc(msg->mapData, compress_buf_size);
-  int compress_return = compress2((Bytef *) msg->mapData, &compress_buf_size, (Bytef *) data, uncompressed_size,
-      Z_BEST_SPEED);
-  if (compress_return != Z_OK) {
-    fprintf(stderr, "ERROR: Could not compress voxel map!\n");
-    return NULL;
-  }
-  //    fprintf(stderr, "uncompressed_size=%ld compressed_size=%ld\n", uncompressed_size, compress_buf_size);
-  msg->datasize = compress_buf_size;
-  msg->compressed = 1;
-
-  //set the data_type
-  const std::type_info& type = typeid(T);
-  if (type == typeid(float))
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_FLOAT;
-  else if (type == typeid(uint8_t))
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_UINT8;
-  else if (type == typeid(double))
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_DOUBLE;
-  else if (type == typeid(int32_t))
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_INT32;
-  else if (type == typeid(uint32_t))
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_UINT32;
-  else if (type == typeid(int16_t))
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_INT16;
-  else if (type == typeid(uint16_t))
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_UINT16;
-  else if (type == typeid(int8_t))
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_INT8;
-  else
-    msg->data_type = OCC_MAP_VOXEL_MAP_T_TYPE_UNKNOWN;
-
-  msg->utime = utime;
-
-  return msg;
-}
-
-template<typename T>
-void VoxelMap<T>::set_from_voxel_map_t(const occ_map_voxel_map_t * _msg)
-{
-  memcpy(xyz0, _msg->xyz0, 3 * sizeof(double));
-  memcpy(xyz1, _msg->xyz1, 3 * sizeof(double));
-  memcpy(metersPerPixel, _msg->mpp, 3 * sizeof(double));
-  memcpy(dimensions, _msg->dimensions, 3 * sizeof(int));
-
-  num_cells = 1;
-  for (int i = 0; i < 3; i++)
-    num_cells *= dimensions[i];
-  uLong uncompressed_size = num_cells * sizeof(T);
-  data = (T *) malloc(uncompressed_size); //TODO: does this cause problems with the delete[] in the destructor??
-
-  if (_msg->compressed) {
-    uLong uncompress_size_result = uncompressed_size;
-    uLong uncompress_return = uncompress((Bytef *) data, (uLong *) &uncompress_size_result, (Bytef *) _msg->mapData,
-        (uLong) _msg->datasize);
-    if (uncompress_return != Z_OK || uncompress_size_result != uncompressed_size) {
-      fprintf(stderr, "ERROR uncompressing the map, ret = %lu\n", uncompress_return);
-      return;
-    }
-
-  }
-  else {
-    assert(_msg->datasize == uncompressed_size);
-    memcpy(data, _msg->mapData, uncompressed_size);
-  }
-}
-
-template<typename T>
-void VoxelMap<T>::saveToFile(const std::string & name)
-{
-  const occ_map_voxel_map_t * msg = get_voxel_map_t(0);
-  int sz = occ_map_voxel_map_t_encoded_size(msg);
-  char * buf = (char *) malloc(sz * sizeof(char));
-  occ_map_voxel_map_t_encode(buf, 0, sz, msg);
-  std::ofstream ofs(name.c_str(), std::ios::binary);
-  ofs << sz;
-  ofs.write(buf, sz);
-  ofs.close();
-  free(buf);
-}
-
-template<typename T>
-void VoxelMap<T>::loadFromFile(const std::string & name)
-{
-  occ_map_voxel_map_t * tmpmsg = load_voxel_map_t_from_file(name);
-  set_from_voxel_map_t(tmpmsg);
-  occ_map_voxel_map_t_destroy(tmpmsg);
-}
-#endif
 
 template<typename T>
 template<class F>
@@ -548,19 +408,3 @@ inline F VoxelMap<T>::clamp_value(F x, F min, F max) const
     return max;
   return x;
 }
-
-#ifndef NO_LCM
-occ_map_voxel_map_t * load_voxel_map_t_from_file(const std::string & name)
-{
-  std::ifstream ifs(name.c_str(), std::ios::binary);
-  int sz;
-  ifs >> sz;
-  char * tmpdata = (char *) malloc(sz * sizeof(char));
-  ifs.read(tmpdata, sz * sizeof(char));
-  ifs.close();
-  occ_map_voxel_map_t * ret_msg = (occ_map_voxel_map_t *) calloc(1, sizeof(occ_map_voxel_map_t));
-  occ_map_voxel_map_t_decode(tmpdata, 0, sz, ret_msg);
-  free(tmpdata);
-  return ret_msg;
-}
-#endif

@@ -9,7 +9,7 @@ int main(int argc, char ** argv){
   double xy[2];
   for (xy[1] = -5; xy[1] < 10; xy[1] += 0.2) {
       for (xy[0] = -5; xy[0] < 5; xy[0] += 0.2) {
-          fvm.writeValue (xy, 0.99);
+          fvm.WriteValue (xy, 0.99);
       }
   }
 
@@ -17,12 +17,6 @@ int main(int argc, char ** argv){
   double xyR[2] = {0, 5};
   for (double x = -5; x < 5; x += 0.5) {
       xyR[0] = x;
-      fvm.rayTrace (xy0, xyR, 1, 0.3);
+      fvm.RayTrace (xy0, xyR, 1, 0.3);
   }
-
-#ifndef NO_LCM
-  const occ_map_pixel_map_t *msg = fvm.get_pixel_map_t (0);
-  lcm_t * lcm = lcm_create (NULL);
-  occ_map_pixel_map_t_publish (lcm, "PIXEL_MAP", msg);
-#endif
 }

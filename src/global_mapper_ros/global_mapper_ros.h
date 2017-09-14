@@ -31,7 +31,6 @@ class GlobalMapperRos {
   void InitSubscribers();
   void InitPublishers();
   void PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_grid);
-  void PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marker_array);
   void PopulatePointCloudMsg(sensor_msgs::PointCloud2* pointcloud);
   void PublishMap(const ros::TimerEvent& event);
   void GrayscaleToRGBJet(double v, double vmin, double vmax, std::vector<double>* rgb);
