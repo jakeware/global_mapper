@@ -32,30 +32,30 @@ pixel_map:
 
 # voxel map
 voxel_map:
-  # min coordinates in world frame
-  xyz_min: [-200.0, -200.0, -5.0]  # [m]
+  # metric origin [m]
+  origin: [0.0, 0.0, 0.0]
 
-  # max coordinates in world frame
-  xyz_max: [200.0, 200.0, 30.0]  # [m]
+  # metric dimensions [m]
+  world_dimensions: [200.0, 200.0, 30.0]
 
-  # resolution
-  resolution: [0.5, 0.5, 0.5]  # [m]
+  # resolution [m]
+  resolution: [0.5, 0.5, 0.5]
 
   # initial value of cells
   init_value: 0.0
 
-  # cell value bounds
-  bound_min: 0.0  # [m]
-  bound_max: 1.0  # [m]
+  # cell value bounds [m]
+  bound_min: 0.0
+  bound_max: 1.0
 
-  # absolute position pointcloud cropping
-  min_z_abs: -5.0  # [m]
-  max_z_abs: 30.0  # [m]
+  # absolute position pointcloud cropping [m]
+  min_z_abs: -5.0
+  max_z_abs: 30.0
 
-  # relative position pointcloud cropping
+  # relative position pointcloud cropping [m]
   use_rel_cropping: false
-  min_z_rel: -0.5  # [m]
-  max_z_rel: 0.5  # [m]
+  min_z_rel: -0.5
+  max_z_rel: 0.5
 
   # probabilistic increments
   hit_inc: 0.2

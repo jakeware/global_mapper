@@ -15,8 +15,7 @@ template<class T>
 class VoxelMap {
  public:
   // Normal Constructor
-  VoxelMap<T>(const double _xyz0[3], const double _xyz1[3], const double _metersPerPixel[3], T initValue = T(),
-      bool allocate_data = true);
+  VoxelMap<T>(const double _origin[3], const double _world_dimensions[3], const double _resolution[3], T initValue = T());
 
   // Copy Constructor
   template<class F>
@@ -27,7 +26,7 @@ class VoxelMap {
   void Reset(T resetVal = T());
 
   // convert from world coordinates into the map
-  inline bool WorldToGrid(const double xyz[3], int ixyz[3]) const;
+  inline void WorldToGrid(const double xyz[3], int ixyz[3]) const;
 
   // convert from the map coordinates to world coordinates
   inline void GridToWorld(const int ixyz[3], double * xyz) const;
@@ -69,11 +68,11 @@ class VoxelMap {
   inline void IndexToWorld(int ind, double xyz[3]) const;
   
   //metadata
-  double xyz0[3], xyz1[3];
-  double metersPerPixel[3];
-  int dimensions[3];
+  double origin[3];
+  double world_dimensions[3];
+  double resolution[3];
+  int grid_dimensions[3]; //map bounds in grid coordinates
   int num_cells;
-  int64_t utime;
 
   //the actual storage arrays
   T * data;

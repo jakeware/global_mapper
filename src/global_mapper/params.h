@@ -22,8 +22,8 @@ struct Params {
   double pixel_max_z_rel;
 
   // voxel map
-  double voxel_xyz_min[3];
-  double voxel_xyz_max[3];
+  double voxel_origin[3];
+  double voxel_world_dimensions[3];
   std::vector<double> voxel_resolution;
   double voxel_init_value;
   double voxel_bound_min;

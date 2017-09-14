@@ -61,13 +61,13 @@ void GlobalMapperRos::GetParams() {
   fla_utils::SafeGetParam(pnh_, "pixel_map/publish_map", publish_pixel_map_);
 
   // voxel map params
-  std::vector<double> voxel_xyz_min(3, 0.0);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_min", voxel_xyz_min);
-  std::copy(voxel_xyz_min.begin(), voxel_xyz_min.end(), params_.voxel_xyz_min);
+  std::vector<double> voxel_origin(3, 0.0);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/origin", voxel_origin);
+  std::copy(voxel_origin.begin(), voxel_origin.end(), params_.voxel_origin);
 
-  std::vector<double> voxel_xyz_max(3, 0.0);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", voxel_xyz_max);
-  std::copy(voxel_xyz_max.begin(), voxel_xyz_max.end(), params_.voxel_xyz_max);
+  std::vector<double> voxel_world_dimensions(3, 0.0);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/world_dimensions", voxel_world_dimensions);
+  std::copy(voxel_world_dimensions.begin(), voxel_world_dimensions.end(), params_.voxel_world_dimensions);
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", params_.voxel_resolution);
 

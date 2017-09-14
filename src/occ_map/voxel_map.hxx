@@ -3,44 +3,40 @@
 #endif
 
 template<typename T>
-VoxelMap<T>::VoxelMap(const double _xyz0[3], const double _xyz1[3], const double _metersPerPixel[3], T initValue,
-    bool allocate_data) :
+VoxelMap<T>::VoxelMap(const double _origin[3], const double _world_dimensions[3], const double _resolution[3], T initValue) :
     data(NULL)
 {
-  memcpy(xyz0, _xyz0, 3 * sizeof(double));
-  memcpy(xyz1, _xyz1, 3 * sizeof(double));
-  memcpy(metersPerPixel, _metersPerPixel, 3 * sizeof(double));
+  memcpy(world_dimensions, _world_dimensions, 3 * sizeof(double));
+  memcpy(resolution, _resolution, 3 * sizeof(double));
+  memcpy(origin, _origin, 3 * sizeof(double));
 
-  num_cells = 1;
   for (int i = 0; i < 3; i++) {
-    dimensions[i] = ceil(floor(100 * (1.0 / metersPerPixel[i]) * (xyz1[i] - xyz0[i])) / 100); //multiply by 100 and take floor to avoid machine precision issues
-    xyz1[i] = xyz0[i] + dimensions[i] * metersPerPixel[i]; //make top right align with pixel boundaries
-    num_cells *= dimensions[i];
-  }
-  if (allocate_data) {
-    data = new T[num_cells];
-    Reset(initValue);
-  }
+    grid_dimensions[i] = static_cast<int>(world_dimensions[i] / resolution[i]);
+  } 
+
+  num_cells = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
+
+  data = new T[num_cells];
+  Reset(initValue);
 }
 
 template<typename T>
 template<class F>
 VoxelMap<T>::VoxelMap(const VoxelMap<F> * to_copy, bool copyData, T (*transformFunc)(F))
 {
-  memcpy(xyz0, to_copy->xyz0, 3 * sizeof(double));
-  memcpy(xyz1, to_copy->xyz1, 3 * sizeof(double));
-  memcpy(metersPerPixel, to_copy->metersPerPixel, 3 * sizeof(double));
-  memcpy(dimensions, to_copy->dimensions, 3 * sizeof(int));
+  memcpy(grid_dimensions, to_copy->grid_dimensions, 3 * sizeof(int));
+  memcpy(world_dimensions, to_copy->world_dimensions, 3 * sizeof(double));
+  memcpy(resolution, to_copy->resolution, 3 * sizeof(double));
+  memcpy(origin, to_copy->origin, 3 * sizeof(double));
 
-  num_cells = 1;
-  for (int i = 0; i < 3; i++)
-    num_cells *= dimensions[i];
+  num_cells = to_copy->num_cells;
+
   data = new T[num_cells];
   if (copyData) {
     int ixyz[3];
-    for (ixyz[2] = 0; ixyz[2] < dimensions[2]; ixyz[2]++) {
-      for (ixyz[1] = 0; ixyz[1] < dimensions[1]; ixyz[1]++) {
-        for (ixyz[0] = 0; ixyz[0] < dimensions[0]; ixyz[0]++) {
+    for (ixyz[2] = 0; ixyz[2] < grid_dimensions[2]; ixyz[2]++) {
+      for (ixyz[1] = 0; ixyz[1] < grid_dimensions[1]; ixyz[1]++) {
+        for (ixyz[0] = 0; ixyz[0] < grid_dimensions[0]; ixyz[0]++) {
           if (transformFunc != NULL)
             WriteValue(ixyz, transformFunc(to_copy->ReadValue(ixyz)));
           else
@@ -61,8 +57,8 @@ VoxelMap<T>::~VoxelMap()
 //get linear index into storage arrays
 template<typename T>
 inline int VoxelMap<T>::GetIndex(const int ixyz[3]) const
-    {
-  return ixyz[2] * (dimensions[0] * dimensions[1]) + ixyz[1] * dimensions[0] + ixyz[0];
+{
+  return ixyz[2] * (grid_dimensions[0] * grid_dimensions[1]) + ixyz[1] * grid_dimensions[0] + ixyz[0];
 }
 template<typename T>
 inline int VoxelMap<T>::GetIndex(const double xyz[3]) const
@@ -75,10 +71,10 @@ inline int VoxelMap<T>::GetIndex(const double xyz[3]) const
 template<typename T>
 inline void VoxelMap<T>::IndexToGrid(int ind, int ixyz[3]) const
     {
-  ixyz[2] = ind / (dimensions[0] * dimensions[1]);
-  ind -= ixyz[2] * (dimensions[0] * dimensions[1]);
-  ixyz[1] = ind / (dimensions[0]);
-  ind -= ixyz[1] * dimensions[0];
+  ixyz[2] = ind / (grid_dimensions[0] * grid_dimensions[1]);
+  ind -= ixyz[2] * (grid_dimensions[0] * grid_dimensions[1]);
+  ixyz[1] = ind / (grid_dimensions[0]);
+  ind -= ixyz[1] * grid_dimensions[0];
   ixyz[0] = ind;
 }
 template<typename T>
@@ -90,41 +86,39 @@ inline void VoxelMap<T>::IndexToWorld(int ind, double xyz[3]) const
 }
 
 template<typename T>
-inline bool VoxelMap<T>::WorldToGrid(const double xyz[3], int ixyz[3]) const
-    {
-  bool clamped = false;
+inline void VoxelMap<T>::WorldToGrid(const double xyz[3], int ixyz[3]) const
+{
+  
   for (int i = 0; i < 3; i++) {
-    ixyz[i] = round((xyz[i] - xyz0[i]) / metersPerPixel[i]);
-    if (ixyz[i] <= 0 || ixyz[i] >= dimensions[i] - 1) {
-      ixyz[i] = clamp_value(ixyz[i], 0, dimensions[i] - 1);
-      clamped = true;
-    }
+    ixyz[i] = round((xyz[i] - (origin[i] - world_dimensions[i]) * 0.5) / resolution[i]);
   }
-  return clamped;
 }
 
 template<typename T>
 inline void VoxelMap<T>::GridToWorld(const int ixyz[3], double * xyz) const
-    {
-  for (int i = 0; i < 3; i++)
-    xyz[i] = ((double) ixyz[i]) * metersPerPixel[i] + xyz0[i];
+{
+  for (int i = 0; i < 3; i++) {
+    xyz[i] = ((double) ixyz[i]) * resolution[i] + (origin[i] - world_dimensions[i]) * 0.5;
+  }
 }
 
 template<typename T>
 inline bool VoxelMap<T>::IsInMap(const int ixyz[3]) const
-    {
-  for (int i = 0; i < 3; i++)
-    if (ixyz[i] < 0 || ixyz[i] >= dimensions[i])
+{
+  for (int i = 0; i < 3; i++) {
+    if(ixyz[i] < 0 || ixyz[i] >= grid_dimensions[i]) {
       return false;
+    }
+  }
   return true;
 }
+
 template<typename T>
 inline bool VoxelMap<T>::IsInMap(const double xyz[3]) const
-    {
-  for (int i = 0; i < 3; i++)
-    if (xyz[i] < xyz0[i] || xyz[i] > xyz1[i])
-      return false;
-  return true;
+{
+  int ixyz[3];
+  WorldToGrid(xyz, ixyz);
+  return IsInMap(ixyz);
 }
 
 template<typename T>
