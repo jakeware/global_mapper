@@ -13,7 +13,7 @@ namespace occ_map {
 
 template<class T>
 class PixelMap {
-public:
+ public:
   // normal constructor
   PixelMap<T>(const double _xy0[2], const double _xy1[2], double mPP, T initValue = T(), bool allocate_data = true, bool align_to_pixels = true);
 
@@ -58,7 +58,7 @@ public:
   bool CollisionCheck(const int start[2], const int end[2], T occ_thresh, int collisionPoint[2] = NULL) const;
   bool CollisionCheck(const double start[2], const double end[2], T occ_thresh, double collisionPoint[2] = NULL) const;
 
-private:
+ private:
   template<class F>
   inline F clamp_value(F x, F min, F max) const;
 
@@ -71,7 +71,6 @@ private:
   double metersPerPixel;
   int dimensions[2];
   int num_cells;
-  int64_t utime;
   // the actual storage array
   T* data;
 };

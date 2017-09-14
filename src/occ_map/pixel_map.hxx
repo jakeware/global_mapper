@@ -5,7 +5,7 @@
 template<typename T>
 PixelMap<T>::PixelMap(const double _xy0[2], const double _xy1[2], double mPP, T initValue, bool allocate_data,
     bool align_to_pixels) :
-    metersPerPixel(mPP),  data(NULL), utime(0)
+    metersPerPixel(mPP),  data(NULL)
 {
   if (align_to_pixels) {
     // make bottom right align with pixels
@@ -41,7 +41,7 @@ PixelMap<T>::PixelMap(const double _xy0[2], const double _xy1[2], double mPP, T 
 template<typename T>
 template<class F>
 PixelMap<T>::PixelMap(const PixelMap<F> * to_copy, bool copyData, T (*transformFunc)(F)) :
-    metersPerPixel(to_copy->metersPerPixel), data(NULL), utime(0)
+    metersPerPixel(to_copy->metersPerPixel), data(NULL)
 {
   memcpy(xy0, to_copy->xy0, 2 * sizeof(double));
   memcpy(xy1, to_copy->xy1, 2 * sizeof(double));
@@ -135,13 +135,10 @@ inline bool PixelMap<T>::IsInMap(const int ixy[2]) const
 
 template<typename T>
 inline bool PixelMap<T>::IsInMap(const double xy[2]) const
-    {
-  if (xy[0] < xy0[0] || xy[0] > xy1[0])
-    return false;
-  else if (xy[1] < xy0[1] || xy[1] > xy1[1])
-    return false;
-  else
-    return true;
+{
+  int ixy[2];
+  WorldToGrid(xy, ixy);
+  return IsInMap(ixy);
 }
 
 template<typename T>
