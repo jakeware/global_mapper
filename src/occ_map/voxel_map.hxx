@@ -30,9 +30,12 @@ VoxelMap<T>::VoxelMap(const double _origin[3], const double _world_dimensions[3]
   // for (ixyz[2] = 0; ixyz[2] < grid_dimensions[2]; ixyz[2]++) {
   //   for (ixyz[1] = 0; ixyz[1] < grid_dimensions[1]; ixyz[1]++) {
   //     for (ixyz[0] = 0; ixyz[0] < grid_dimensions[0]; ixyz[0]++) {
-  //      if((ixyz[0]/10+ixyz[1]/10)%2==0) {
-  //         WriteValue(ixyz, 1);
-  //      }
+  //       double xyz[3];
+  //       GridToWorld(ixyz, xyz);
+  //       if(xyz[0] > -2 && xyz[0] < 2 && xyz[1] > -2 && xyz[1] < 2) {
+  //          WriteValue(ixyz, 1);
+  //        }
+  //       // if((ixyz[0]/10+ixyz[1]/10)%2==0) {
   //     }
   //   }
   // }
