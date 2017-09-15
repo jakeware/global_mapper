@@ -47,9 +47,7 @@ class VoxelMap {
   inline void WriteValue(const int ixyz[3], T value);
   inline void WriteValue(const double xyz[3], T value);
 
-  inline void UpdateOrigin(const double xyz[3]) {
-    memcpy(origin, xyz, 3 * sizeof(double));
-  }
+  inline void UpdateOrigin(const double xyz[3]);
 
   //add the value to the cell with optional value clamping
   inline void UpdateValue(const int ixyz[3], T value, const T clamp_bounds[2] = NULL);
@@ -76,7 +74,8 @@ class VoxelMap {
 
   
   //metadata
-  double origin[3];
+  double origin[3]; //how far we are from 0,0,0 in each world axis
+  int offset[3];
   double world_dimensions[3];
   double resolution[3];
   int grid_dimensions[3]; //map bounds in grid coordinates
