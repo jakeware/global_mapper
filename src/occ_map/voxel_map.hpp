@@ -26,7 +26,7 @@ class VoxelMap {
   void Reset(T resetVal = T());
 
   inline void GetGridDimensions(int dimensions[3]) {
-    memcpy(dimensions, grid_dimensions, 3 * sizeof(double));
+    memcpy(dimensions, grid_dimensions, 3 * sizeof(int));
   }
 
   // convert from world coordinates into the map
@@ -46,6 +46,10 @@ class VoxelMap {
   //write the value in the cell
   inline void WriteValue(const int ixyz[3], T value);
   inline void WriteValue(const double xyz[3], T value);
+
+  inline void UpdateOrigin(const double xyz[3]) {
+    memcpy(origin, xyz, 3 * sizeof(double));
+  }
 
   //add the value to the cell with optional value clamping
   inline void UpdateValue(const int ixyz[3], T value, const T clamp_bounds[2] = NULL);

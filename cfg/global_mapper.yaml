@@ -36,7 +36,7 @@ voxel_map:
   origin: [0.0, 0.0, 0.0]
 
   # metric dimensions [m]
-  world_dimensions: [200.0, 200.0, 30.0]
+  world_dimensions: [40.0, 40.0, 30.0]
 
   # resolution [m]
   resolution: [0.5, 0.5, 0.5]

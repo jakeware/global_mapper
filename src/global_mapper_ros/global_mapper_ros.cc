@@ -86,6 +86,7 @@ void GlobalMapperRos::GetParams() {
 
 void GlobalMapperRos::InitSubscribers() {
   point_cloud_sub_ = pnh_.subscribe("cloud_topic", 10, &GlobalMapperRos::PointCloudCallback, this);
+  pose_sub_ = pnh_.subscribe("pose_topic", 10, &GlobalMapperRos::PoseCallback, this);
 }
 
 void GlobalMapperRos::InitPublishers() {
@@ -147,44 +148,21 @@ void GlobalMapperRos::PopulatePointCloudMsg(sensor_msgs::PointCloud2* pointcloud
     transform(2) = std::numeric_limits<double>::quiet_NaN();
   }
 
-  // get occuppied voxels
-  std::vector<int> occ_inds;
-
-  int min_ixyz[3];
-  int max_ixyz[3];
-
-  const double subgrid_half_size[3] = {20,20,3};
-
-  const double min_xyz[3] = {transform[0] - subgrid_half_size[0], 
-                       transform[1] - subgrid_half_size[1],
-                       transform[2] - subgrid_half_size[2]};
-
-  const double max_xyz[3] = {transform[0] + subgrid_half_size[0], 
-                       transform[1] + subgrid_half_size[1],
-                       transform[2] + subgrid_half_size[2]};
-
-
-  global_mapper_ptr_->voxel_map_ptr_->WorldToGrid(min_xyz, min_ixyz);
-  global_mapper_ptr_->voxel_map_ptr_->WorldToGrid(max_xyz, max_ixyz);
-
-  int voxel_index = 0;
-  for (int x = min_ixyz[0]; x < max_ixyz[0]; x++) {
-    for (int y = min_ixyz[1]; y < max_ixyz[1]; y++) {
-      for (int z = min_ixyz[2]; z < max_ixyz[2]; z++) {
-        int ixyz[3] = {x, y, z};
-        if(global_mapper_ptr_->voxel_map_ptr_->ReadValue(ixyz) > 0.6) {
-          voxel_index = global_mapper_ptr_->voxel_map_ptr_->GetIndex(ixyz);
-          occ_inds.push_back(voxel_index);
-        }
-      }
-    }
-  }
+  int grid_dimensions[3];
+  global_mapper_ptr_->voxel_map_ptr_->GetGridDimensions(grid_dimensions);
 
   double xyz[3] = {0.0};
   pcl::PointCloud<pcl::PointXYZ> cloud;
-  for (int i = 0; i < occ_inds.size(); ++i) {
-    global_mapper_ptr_->voxel_map_ptr_->IndexToWorld(occ_inds[i], xyz);
-    cloud.push_back(pcl::PointXYZ(xyz[0], xyz[1], xyz[2]));
+  for (int x = 0; x < grid_dimensions[0]; x++) {
+    for (int y = 0; y < grid_dimensions[1]; y++) {
+      for (int z = 0; z < grid_dimensions[2]; z++) {
+        int ixyz[3] = {x, y, z};
+        if(global_mapper_ptr_->voxel_map_ptr_->ReadValue(ixyz) > 0.6) {
+          global_mapper_ptr_->voxel_map_ptr_->GridToWorld(ixyz, xyz);
+          cloud.push_back(pcl::PointXYZ(xyz[0], xyz[1], xyz[2]));
+        }
+      }
+    }
   }
 
   pcl::toROSMsg(cloud, *pointcloud);
@@ -246,7 +224,16 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   }
 }
 
+void GlobalMapperRos::PoseCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_ptr) {
+  double xyz[3];
+  xyz[0] = pose_ptr->pose.position.x;
+  xyz[1] = pose_ptr->pose.position.y;
+  xyz[2] = pose_ptr->pose.position.z;
+  global_mapper_ptr_->voxel_map_ptr_->UpdateOrigin(xyz);
+}
+
 void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr) {
+  ROS_WARN("PointCloudCallback");
   // get transform
   const std::string target_frame = params_.map_frame;
   geometry_msgs::TransformStamped transform_stamped;

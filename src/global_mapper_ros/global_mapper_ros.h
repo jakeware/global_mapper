@@ -13,6 +13,7 @@
 #include <pcl_ros/point_cloud.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include "global_mapper/global_mapper.h"
 
@@ -37,6 +38,7 @@ class GlobalMapperRos {
 
   // callbacks
   void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr);
+  void PoseCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_ptr);
 
   // publishers
   ros::Publisher pixel_map_pub_;
@@ -47,6 +49,7 @@ class GlobalMapperRos {
 
   // subscribers
   ros::Subscriber point_cloud_sub_;
+  ros::Subscriber pose_sub_;
 
   // params
   Params params_;

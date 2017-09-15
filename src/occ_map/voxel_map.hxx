@@ -25,11 +25,16 @@ VoxelMap<T>::VoxelMap(const double _origin[3], const double _world_dimensions[3]
 
   Reset(initValue);
 
-  printf("origin: %0.2f, %0.2f, %0.2f\n", origin[0], origin[1], origin[2]);
-  printf("world_dimensions: %0.2f, %0.2f, %0.2f\n", world_dimensions[0], world_dimensions[1], world_dimensions[2]);
-  printf("resolution: %0.2f, %0.2f, %0.2f\n", resolution[0], resolution[1], resolution[2]);
-  printf("grid_dimensions: %i, %i, %i\n", grid_dimensions[0], grid_dimensions[1], grid_dimensions[2]);
-  printf("num_cells: %i\n", num_cells);
+  // int ixyz[3];
+  // for (ixyz[2] = 0; ixyz[2] < grid_dimensions[2]; ixyz[2]++) {
+  //   for (ixyz[1] = 0; ixyz[1] < grid_dimensions[1]; ixyz[1]++) {
+  //     for (ixyz[0] = 0; ixyz[0] < grid_dimensions[0]; ixyz[0]++) {
+  //      if((ixyz[0]/10+ixyz[1]/10)%2==0) {
+  //         WriteValue(ixyz, 1);
+  //      }
+  //     }
+  //   }
+  // }
 }
 
 template<typename T>
@@ -72,6 +77,7 @@ inline int VoxelMap<T>::GetIndex(const int ixyz[3]) const
 {
   return ixyz[2] * (grid_dimensions[0] * grid_dimensions[1]) + ixyz[1] * grid_dimensions[0] + ixyz[0];
 }
+
 template<typename T>
 inline int VoxelMap<T>::GetIndex(const double xyz[3]) const
     {
@@ -89,9 +95,10 @@ inline void VoxelMap<T>::IndexToGrid(int ind, int ixyz[3]) const
   ind -= ixyz[1] * grid_dimensions[0];
   ixyz[0] = ind;
 }
+
 template<typename T>
 inline void VoxelMap<T>::IndexToWorld(int ind, double xyz[3]) const
-    {
+{
   int ixyz[3];
   IndexToGrid(ind, ixyz);
   GridToWorld(ixyz, xyz);
@@ -101,7 +108,7 @@ template<typename T>
 inline void VoxelMap<T>::WorldToGrid(const double xyz[3], int ixyz[3]) const
 {
   for (int i = 0; i < 3; i++) {
-    ixyz[i] = round((xyz[i] - (origin[i] - world_dimensions[i]) * 0.5) / resolution[i]);
+    ixyz[i] = static_cast<int>(((xyz[i] - origin[i]) - (origin[i] - world_dimensions[i]  * 0.5)) / resolution[i]);
   }
 }
 
@@ -109,7 +116,7 @@ template<typename T>
 inline void VoxelMap<T>::GridToWorld(const int ixyz[3], double * xyz) const
 {
   for (int i = 0; i < 3; i++) {
-    xyz[i] = ((double) ixyz[i]) * resolution[i] + (origin[i] - world_dimensions[i]) * 0.5;
+    xyz[i] = ixyz[i] * resolution[i] + (origin[i] - world_dimensions[i] * 0.5) + origin[i];
   }
 }
 
