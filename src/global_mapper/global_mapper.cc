@@ -19,7 +19,6 @@ GlobalMapper::~GlobalMapper() {
 }
 
 void GlobalMapper::PushPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
-  std::cout << "PushPointCloud" << std::endl;
   // push
   std::lock_guard<std::mutex> cloud_lock(cloud_mutex());
   point_cloud_buffer_.push_back(cloud_ptr);
@@ -144,7 +143,6 @@ void GlobalMapper::Spin() {
     // cloud_ptr = TransformPointCloud(cloud_ptr);
     InsertPointCloud(cloud_ptr);
     // FlattenMap();
-    std::cout << "Spin" << std::endl;
   }
 }
 

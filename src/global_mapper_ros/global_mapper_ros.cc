@@ -233,7 +233,6 @@ void GlobalMapperRos::PoseCallback(const geometry_msgs::PoseStamped::ConstPtr& p
 }
 
 void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr) {
-  ROS_WARN("PointCloudCallback");
   // get transform
   const std::string target_frame = params_.map_frame;
   geometry_msgs::TransformStamped transform_stamped;
