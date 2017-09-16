@@ -48,15 +48,6 @@ const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
   return cloud_ptr;
 }
 
-const PointCloud::ConstPtr GlobalMapper::TransformPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
-  // check for garbage input
-  if (!cloud_ptr) {
-    return nullptr;
-  }
-
-  // not yet implemented
-}
-
 void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
   // check for garbage input
   if (!cloud_ptr) {
