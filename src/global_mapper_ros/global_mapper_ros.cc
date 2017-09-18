@@ -233,10 +233,8 @@ void GlobalMapperRos::PoseCallback(const geometry_msgs::PoseStamped::ConstPtr& p
 }
 
 void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr) {
-  // get transform
   const std::string target_frame = params_.map_frame;
   geometry_msgs::TransformStamped transform_stamped;
-  // try to get correct transform
   try {
     transform_stamped = tf_buffer_.lookupTransform(target_frame, cloud_ptr->header.frame_id,
                                                    ros::Time(cloud_ptr->header.stamp),
@@ -245,19 +243,14 @@ void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPt
     ROS_WARN("%s", ex.what());
     return;
   }
-
+  
   sensor_msgs::PointCloud2 cloud_out;
   tf2::doTransform(*cloud_ptr, cloud_out, transform_stamped);
 
   pcl::PointCloud<pcl::PointXYZ> cloud;
   pcl::fromROSMsg(cloud_out, cloud);
   
-  // push to mapper
-  // static bool virgin = true;
-  // if (virgin) {
-    global_mapper_ptr_->PushPointCloud(cloud.makeShared());
-    // virgin = false;
-  // }
+  global_mapper_ptr_->PushPointCloud(cloud.makeShared());
 }
 
 void GlobalMapperRos::Run() {

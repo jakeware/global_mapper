@@ -49,7 +49,6 @@ const PointCloud::ConstPtr GlobalMapper::PopPointCloud() {
 }
 
 void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
-  // check for garbage input
   if (!cloud_ptr) {
     return;
   }
@@ -131,7 +130,6 @@ void GlobalMapper::Spin() {
     data_lock.unlock();
 
     cloud_ptr = PopPointCloud();
-    // cloud_ptr = TransformPointCloud(cloud_ptr);
     InsertPointCloud(cloud_ptr);
     // FlattenMap();
   }

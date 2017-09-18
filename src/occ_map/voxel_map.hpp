@@ -78,14 +78,14 @@ class VoxelMap {
 
   //metadata
   double origin[3];
-  int offset[3];
+  int origin_voxels[3];
   double world_dimensions[3];
   double resolution[3];
   int grid_dimensions[3]; //map bounds in grid coordinates
   int num_cells;
 
   //the actual storage arrays
-  T * data;
+  T* data;
 };
 
 using FloatVoxelMap = VoxelMap<float>;
