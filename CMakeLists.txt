@@ -66,3 +66,5 @@ add_subdirectory("src/global_mapper_ros")
 
 # global_mapper library
 add_subdirectory("src/global_mapper")
+
+add_subdirectory("test")

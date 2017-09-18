@@ -1,4 +1,4 @@
-#include <occ_map/PixelMap.hpp>
+#include <occ_map/pixel_map.hpp>
 
 int main(int argc, char ** argv){
   double xyz0[2] = {-20, -20};
