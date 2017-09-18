@@ -63,8 +63,8 @@ class PixelMap {
   inline F clamp_value(F x, F min, F max) const;
 
   //get linear index into storage arrays
-  inline int GetIndex(const int ixy[2]) const;
-  inline int GetIndex(const double xy[2]) const;
+  inline int GridToIndex(const int ixy[2]) const;
+  inline int WorldToIndex(const double xy[2]) const;
 
   //metadata
   double xy0[2], xy1[2];

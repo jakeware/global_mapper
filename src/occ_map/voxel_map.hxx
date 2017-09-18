@@ -8,7 +8,8 @@ VoxelMap<T>::VoxelMap(const double _origin[3], const double _world_dimensions[3]
 {
   memcpy(world_dimensions, _world_dimensions, 3 * sizeof(double));
   memcpy(resolution, _resolution, 3 * sizeof(double));
-
+  memcpy(origin, _origin, 3 * sizeof(double));
+  
   UpdateOrigin(_origin);
 
   for (int i = 0; i < 3; i++) {
@@ -26,19 +27,19 @@ VoxelMap<T>::VoxelMap(const double _origin[3], const double _world_dimensions[3]
 
   Reset(initValue);
 
-  // int ixyz[3];
-  // for (ixyz[2] = 0; ixyz[2] < grid_dimensions[2]; ixyz[2]++) {
-  //   for (ixyz[1] = 0; ixyz[1] < grid_dimensions[1]; ixyz[1]++) {
-  //     for (ixyz[0] = 0; ixyz[0] < grid_dimensions[0]; ixyz[0]++) {
-  //       double xyz[3];
-  //       GridToWorld(ixyz, xyz);
-  //       if(xyz[0] > -2 && xyz[0] < 2 && xyz[1] > -2 && xyz[1] < 2) {
-  //          WriteValue(ixyz, 1);
-  //        }
-  //       // if((ixyz[0]/10+ixyz[1]/10)%2==0) {
-  //     }
-  //   }
-  // }
+  int ixyz[3];
+  for (ixyz[2] = 0; ixyz[2] < grid_dimensions[2]; ixyz[2]++) {
+    for (ixyz[1] = 0; ixyz[1] < grid_dimensions[1]; ixyz[1]++) {
+      for (ixyz[0] = 0; ixyz[0] < grid_dimensions[0]; ixyz[0]++) {
+        double xyz[3];
+        GridToWorld(ixyz, xyz);
+        if(xyz[0] > -2 && xyz[0] < 2 && xyz[1] > -2 && xyz[1] < 2) {
+           WriteValue(ixyz, 1);
+         }
+        // if((ixyz[0]/10+ixyz[1]/10)%2==0) {
+      }
+    }
+  }
 }
 
 template<typename T>
@@ -78,7 +79,7 @@ VoxelMap<T>::~VoxelMap()
 
 //get linear index into storage arrays
 template<typename T>
-inline int VoxelMap<T>::GetIndex(const int ixyz[3]) const
+inline int VoxelMap<T>::GridToIndex(const int ixyz[3]) const
 {
   int ixyz_offset[3];
   for (int i = 0; i < 3; i++) {
@@ -93,11 +94,11 @@ inline int VoxelMap<T>::GetIndex(const int ixyz[3]) const
 }
 
 template<typename T>
-inline int VoxelMap<T>::GetIndex(const double xyz[3]) const
+inline int VoxelMap<T>::WorldToIndex(const double xyz[3]) const
     {
   int ixyz[3];
   WorldToGrid(xyz, ixyz);
-  return GetIndex(ixyz);
+  return GridToIndex(ixyz);
 }
 
 template<typename T>
@@ -164,11 +165,64 @@ void VoxelMap<T>::Reset(T resetVal)
 
 template<typename T>
 inline void VoxelMap<T>::UpdateOrigin(const double xyz[3]) {
-  memcpy(origin, xyz, 3 * sizeof(double));
+  int origin_voxels_diff[3] = {0, 0 , 0};
+  int origin_voxels[3] = {0, 0, 0};
+  int origin_voxels_last[3] = {0, 0, 0};
   for (int i = 0; i < 3; i++) {
-    offset[i] = static_cast<int>(origin[i]/resolution[i]) % grid_dimensions[i];
+    origin_voxels_last[i] = static_cast<int>(origin[i]/resolution[i]);
+    origin[i] = xyz[i];
+    origin_voxels[i] = static_cast<int>(origin[i]/resolution[i]);
+    origin_voxels_diff[i] = origin_voxels[i] - origin_voxels_last[i];
+
+    // compute memory offset
+    offset[i] = origin_voxels[i] % grid_dimensions[i];
     if(offset[i] < 0) {
       offset[i] += grid_dimensions[i];
+    }
+  }
+
+  if (abs(origin_voxels_diff[0]) > 10 || abs(origin_voxels_diff[1]) > 10 || abs(origin_voxels_diff[2]) > 10) {
+    return;
+  }
+
+  // clear cells
+  // printf("origin_voxels: %i %i %i\n", origin_voxels[0], origin_voxels[1], origin_voxels[2]);
+  // printf("origin_voxels_last: %i %i %i\n", origin_voxels_last[0], origin_voxels_last[1], origin_voxels_last[2]);
+  // printf("origin_voxels_diff: %i %i %i\n", origin_voxels_diff[0], origin_voxels_diff[1], origin_voxels_diff[2]);
+  for (int i = 0; i < 3; i++) {
+    if (origin_voxels_diff[i] > 0) {
+      // printf("i: %i \n", grid_dimensions[i] - 1 - abs(origin_voxels_diff[i]));
+      // printf("width: %i\n", abs(origin_voxels_diff[i]));
+      ClearSlice(grid_dimensions[i] - 1 - abs(origin_voxels_diff[i]), abs(origin_voxels_diff[i]), i);
+    }
+
+    if (origin_voxels_diff[i] < 0) {
+      // printf("i: %i \n", 0);
+      // printf("width: %i\n", abs(origin_voxels_diff[i]));
+      ClearSlice(0, abs(origin_voxels_diff[i]), i);
+    }
+  }
+}
+
+template<typename T>
+inline void VoxelMap<T>::ClearSlice(const int i, const int width, const int dimension) {
+  // set minimum dimensions
+  int ixyz_min[3] = {0, 0, 0};
+  ixyz_min[dimension] = i;
+
+  // set max dimensions
+  int ixyz_max[3] = {grid_dimensions[0] - 1, grid_dimensions[1] - 1, grid_dimensions[2] - 1};
+  ixyz_max[dimension] = i + width;
+
+  int ixyz[3];
+  for (int ix = ixyz_min[0]; ix <= ixyz_max[0]; ix++) {
+    for (int iy = ixyz_min[1]; iy <= ixyz_max[1]; iy++) {
+      for (int iz = ixyz_min[2]; iz <= ixyz_max[2]; iz++) {
+        ixyz[0] = ix;
+        ixyz[1] = iy;
+        ixyz[2] = iz;
+        WriteValue(ixyz, 0);
+      }
     }
   }
 }
@@ -176,7 +230,7 @@ inline void VoxelMap<T>::UpdateOrigin(const double xyz[3]) {
 template<typename T>
 inline T VoxelMap<T>::ReadValue(const int ixyz[3]) const
     {
-  int ind = GetIndex(ixyz);
+  int ind = GridToIndex(ixyz);
   return data[ind];
 }
 template<typename T>
@@ -189,7 +243,7 @@ inline float VoxelMap<T>::ReadValue(const double xyz[3]) const
 template<typename T>
 inline void VoxelMap<T>::WriteValue(const int ixyz[3], T value)
 {
-  int ind = GetIndex(ixyz);
+  int ind = GridToIndex(ixyz);
   data[ind] = value;
 }
 template<typename T>
@@ -202,7 +256,7 @@ inline void VoxelMap<T>::WriteValue(const double xyz[3], T value)
 template<typename T>
 inline void VoxelMap<T>::UpdateValue(const int ixyz[3], T value, const T clamp_bounds[2])
 {
-  int ind = GetIndex(ixyz);
+  int ind = GridToIndex(ixyz);
   data[ind] += value;
   if (clamp_bounds != NULL) {
     data[ind] = clamp_value(data[ind], clamp_bounds[0], clamp_bounds[1]);

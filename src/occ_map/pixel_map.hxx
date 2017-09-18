@@ -78,17 +78,17 @@ void PixelMap<T>::Reset(T resetVal)
 }
 
 template<typename T>
-inline int PixelMap<T>::GetIndex(const int ixy[2]) const
+inline int PixelMap<T>::GridToIndex(const int ixy[2]) const
     {
   return ixy[1] * dimensions[0] + ixy[0];
 }
 
 template<typename T>
-inline int PixelMap<T>::GetIndex(const double xy[2]) const
+inline int PixelMap<T>::WorldToIndex(const double xy[2]) const
     {
   int ixy[2];
   WorldToGrid(xy, ixy);
-  return GetIndex(ixy);
+  return GridToIndex(ixy);
 }
 
 template<typename T>
@@ -144,7 +144,7 @@ inline bool PixelMap<T>::IsInMap(const double xy[2]) const
 template<typename T>
 inline T & PixelMap<T>::ReadValue(const int ixy[2]) const
     {
-  int ind = GetIndex(ixy);
+  int ind = GridToIndex(ixy);
   return data[ind];
 
 }
@@ -158,7 +158,7 @@ inline T & PixelMap<T>::ReadValue(const double xy[2]) const
 template<typename T>
 inline void PixelMap<T>::WriteValue(const int ixy[2], T val)
 {
-  int ind = GetIndex(ixy);
+  int ind = GridToIndex(ixy);
   data[ind] = val;
 }
 
@@ -173,7 +173,7 @@ inline void PixelMap<T>::WriteValue(const double xy[2], T val)
 template<typename T>
 inline void PixelMap<T>::UpdateValue(const int ixy[2], T inc, T clamp_bounds[2])
 {
-  int ind = GetIndex(ixy);
+  int ind = GridToIndex(ixy);
   data[ind] += inc;
   if (clamp_bounds != NULL) {
     data[ind] = clamp_value(data[ind], clamp_bounds[0], clamp_bounds[1]);

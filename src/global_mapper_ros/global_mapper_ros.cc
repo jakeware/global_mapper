@@ -212,7 +212,7 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
     double start_time = ros::Time::now().toSec();
     sensor_msgs::PointCloud2 pointcloud_msg;
     PopulatePointCloudMsg(&pointcloud_msg);
-    std::cout << "(global_mapper_ros) PopulatePointCloudMsg took " << ros::Time::now().toSec() - start_time << " seconds" << std::endl;
+    // std::cout << "(global_mapper_ros) PopulatePointCloudMsg took " << ros::Time::now().toSec() - start_time << " seconds" << std::endl;
     pointcloud_pub_.publish(pointcloud_msg);
   }
 

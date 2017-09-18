@@ -14,10 +14,10 @@ namespace occ_map {
 template<class T>
 class VoxelMap {
  public:
-  // Normal Constructor
+  // constructor
   VoxelMap<T>(const double _origin[3], const double _world_dimensions[3], const double _resolution[3], T initValue = T());
 
-  // Copy Constructor
+  // copy Constructor
   template<class F>
   VoxelMap<T>(const VoxelMap<F> * to_copy, bool copyData = true, T (*transformFunc)(F) = NULL);
   ~VoxelMap<T>();
@@ -39,42 +39,45 @@ class VoxelMap {
   inline bool IsInMap(const int ixyz[3]) const;
   inline bool IsInMap(const double xyz[3]) const;
 
-  //read the value contained in this cell
+  // read the value contained in this cell
   inline T ReadValue(const int ixyz[3]) const;
   inline float ReadValue(const double xyz[3]) const;
 
-  //write the value in the cell
+  // write the value in the cell
   inline void WriteValue(const int ixyz[3], T value);
   inline void WriteValue(const double xyz[3], T value);
 
   inline void UpdateOrigin(const double xyz[3]);
 
-  //add the value to the cell with optional value clamping
+  // add the value to the cell with optional value clamping
   inline void UpdateValue(const int ixyz[3], T value, const T clamp_bounds[2] = NULL);
   inline void UpdateValue(const double xyz[3], T value, const T clamp_bounds[2] = NULL);
 
-  //step along the line segment from start to end, updating with miss_inc along the way, and update by hit_inc at end
+  // step along the line segment from start to end, updating with miss_inc along the way, and update by hit_inc at end
   void RayTrace(const int start[3], const int end[3], T miss_inc, T hit_inc, const T clamp_bounds[2] = NULL);
   void RayTrace(const double start[3], const double end[3], T miss_inc, T hit_inc, const T clamp_bounds[2] = NULL);
 
-  //check whether any of the cells between start and end are greater than occ_thresh
+  // check whether any of the cells between start and end are greater than occ_thresh
   bool CollisionCheck(const int start[3], const int end[3], T occ_thresh, int collisionPoint[3] = NULL) const;
   bool CollisionCheck(const double start[3], const double end[3], T occ_thresh, double collisionPoint[3] = NULL) const;
 
-  //get linear index into storage arrays
-  inline int GetIndex(const int ixyz[3]) const;
-  inline int GetIndex(const double xyz[3]) const;
+  // get linear index into storage arrays
+  inline int GridToIndex(const int ixyz[3]) const;
+  inline int WorldToIndex(const double xyz[3]) const;
 
-  // Map backwards from an index to a location
+  // map backwards from an index to a location
   inline void IndexToGrid(int ind, int ixyz[3]) const;
   inline void IndexToWorld(int ind, double xyz[3]) const;
+
+  // clearing
+  inline void ClearSlice(const int i, const int width, const int dimension);
+
  private:
   template<class F>
   inline F clamp_value(F x, F min, F max) const;
 
-  
   //metadata
-  double origin[3]; //how far we are from 0,0,0 in each world axis
+  double origin[3];
   int offset[3];
   double world_dimensions[3];
   double resolution[3];

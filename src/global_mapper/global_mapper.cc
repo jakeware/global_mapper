@@ -77,7 +77,7 @@ void GlobalMapper::InsertPointCloud(const PointCloud::ConstPtr& cloud_ptr) {
     end[2] = cloud_ptr->points[i].z;
     voxel_map_ptr_->UpdateValue(end, params_.voxel_hit_inc, clamp_bounds);
   }
-  std::cout << "(global_mapper) InsertPointCloud took " << ros::Time::now().toSec() - start_time << " seconds" << std::endl;
+  // std::cout << "(global_mapper) InsertPointCloud took " << ros::Time::now().toSec() - start_time << " seconds" << std::endl;
 }
 
 void GlobalMapper::FlattenMap() {
@@ -138,7 +138,7 @@ void GlobalMapper::Spin() {
 }
 
 void GlobalMapper::Run() {
-  fprintf(stderr, "GlobalMapper::Run");
+  fprintf(stderr, "GlobalMapper::Run\n");
 
   voxel_map_ptr_ = std::make_shared<occ_map::VoxelMap<float> >(params_.voxel_origin,
                                                                params_.voxel_world_dimensions,
