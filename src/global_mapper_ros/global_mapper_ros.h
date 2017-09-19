@@ -13,6 +13,7 @@
 #include <pcl_ros/point_cloud.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include "global_mapper/global_mapper.h"
 
@@ -31,21 +32,24 @@ class GlobalMapperRos {
   void InitSubscribers();
   void InitPublishers();
   void PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_grid);
-  void PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marker_array);
+  void PopulatePointCloudMsg(sensor_msgs::PointCloud2* pointcloud);
   void PublishMap(const ros::TimerEvent& event);
   void GrayscaleToRGBJet(double v, double vmin, double vmax, std::vector<double>* rgb);
 
   // callbacks
-  void PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr);
+  void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr);
+  void PoseCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_ptr);
 
   // publishers
   ros::Publisher pixel_map_pub_;
   ros::Publisher voxel_map_pub_;
   ros::Timer map_pub_timer_;
   ros::Publisher marker_pub_;
+  ros::Publisher pointcloud_pub_;
 
   // subscribers
   ros::Subscriber point_cloud_sub_;
+  ros::Subscriber pose_sub_;
 
   // params
   Params params_;

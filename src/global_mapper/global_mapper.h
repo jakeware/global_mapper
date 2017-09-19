@@ -47,7 +47,6 @@ class GlobalMapper {
 
  private:
   const PointCloud::ConstPtr PopPointCloud();
-  const PointCloud::ConstPtr TransformPointCloud(const PointCloud::ConstPtr& point_cloud);
   void InsertPointCloud(const PointCloud::ConstPtr& point_cloud);
   void FlattenMap();
   void Spin();

@@ -1,10 +1,26 @@
 <launch>
-  <arg name="param_file" default="global_mapper.yaml" />
+  <arg name="namespace" default="global_mapper" />
+  <arg name="manager" default="global_mapper_manager" />
+  <arg name="standalone" default="true" />
   <arg name="load_params" default="true" />
+  <arg name="param_file" default="global_mapper.yaml" />
+
+  <!-- remap topics -->
+  <arg name="cloud_topic" default="/flight/r200/points_xyz" />
+  <arg name="pose_topic" default="/pose" />
+  <arg name="pixel_map_topic" default="~pixel_map" />
+  <arg name="voxel_map_topic" default="~voxel_map" />
 
   <!-- node -->
   <node pkg="global_mapper" type="global_mapper_node" name="global_mapper" output="screen">
-    <!-- params -->
-    <rosparam command="load" if="$(arg load_params)" file="$(find global_mapper)/cfg/$(arg param_file)"/>
+      <!-- params -->
+      <rosparam command="load" if="$(arg load_params)" file="$(find global_mapper)/cfg/$(arg param_file)"/>
+
+      <!-- remaps -->
+      <remap from="~cloud_topic" to="$(arg cloud_topic)" />
+      <remap from="~pose_topic" to="$(arg pose_topic)" />
+      <remap from="~pixel_map_topic" to="$(arg pixel_map_topic)" />
+      <remap from="~voxel_map_topic" to="$(arg voxel_map_topic)" />
+      <remap from="~pointcloud_topic" to="~pointcloud" />
   </node>
 </launch>

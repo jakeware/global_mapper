@@ -8,6 +8,10 @@
 #include <ros/ros.h>
 #include <pcl_ros/transforms.h>
 #include <pcl/conversions.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <geometry_msgs/TransformStamped.h>
+
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -57,17 +61,15 @@ void GlobalMapperRos::GetParams() {
   fla_utils::SafeGetParam(pnh_, "pixel_map/publish_map", publish_pixel_map_);
 
   // voxel map params
-  std::vector<double> voxel_xyz_min(3, 0.0);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_min", voxel_xyz_min);
-  std::copy(voxel_xyz_min.begin(), voxel_xyz_min.end(), params_.voxel_xyz_min);
+  std::vector<double> voxel_origin(3, 0.0);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/origin", voxel_origin);
+  std::copy(voxel_origin.begin(), voxel_origin.end(), params_.voxel_origin);
 
-  std::vector<double> voxel_xyz_max(3, 0.0);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/xyz_max", voxel_xyz_max);
-  std::copy(voxel_xyz_max.begin(), voxel_xyz_max.end(), params_.voxel_xyz_max);
+  std::vector<double> voxel_world_dimensions(3, 0.0);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/world_dimensions", voxel_world_dimensions);
+  std::copy(voxel_world_dimensions.begin(), voxel_world_dimensions.end(), params_.voxel_world_dimensions);
 
-  std::vector<double> voxel_resolution(3, 0.0);
-  fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", voxel_resolution);
-  std::copy(voxel_resolution.begin(), voxel_resolution.end(), params_.voxel_resolution);
+  fla_utils::SafeGetParam(pnh_, "voxel_map/resolution", params_.voxel_resolution);
 
   fla_utils::SafeGetParam(pnh_, "voxel_map/init_value", params_.voxel_init_value);
   fla_utils::SafeGetParam(pnh_, "voxel_map/bound_min", params_.voxel_bound_min);
@@ -83,13 +85,15 @@ void GlobalMapperRos::GetParams() {
 }
 
 void GlobalMapperRos::InitSubscribers() {
-  point_cloud_sub_ = pnh_.subscribe<pcl::PointCloud<pcl::PointXYZ> >("cloud_topic", 10, &GlobalMapperRos::PointCloudCallback, this);
+  point_cloud_sub_ = pnh_.subscribe("cloud_topic", 10, &GlobalMapperRos::PointCloudCallback, this);
+  pose_sub_ = pnh_.subscribe("pose_topic", 10, &GlobalMapperRos::PoseCallback, this);
 }
 
 void GlobalMapperRos::InitPublishers() {
   pixel_map_pub_ = pnh_.advertise<nav_msgs::OccupancyGrid>("pixel_map_topic", 1);
   voxel_map_pub_ = pnh_.advertise<visualization_msgs::MarkerArray>("voxel_map_topic", 1);
-  map_pub_timer_ = nh_.createTimer(ros::Duration(1.0), &GlobalMapperRos::PublishMap, this);
+  pointcloud_pub_ = pnh_.advertise<sensor_msgs::PointCloud2>("pointcloud_topic", 1);
+  map_pub_timer_ = nh_.createTimer(ros::Duration(0.2), &GlobalMapperRos::PublishMap, this);
 }
 
 /*
@@ -122,106 +126,94 @@ void GlobalMapperRos::GrayscaleToRGBJet(double v, double vmin, double vmax, std:
   }
 }
 
-void GlobalMapperRos::PopulateVoxelMapMsg(visualization_msgs::MarkerArray* marker_array) {
+void GlobalMapperRos::PopulatePointCloudMsg(sensor_msgs::PointCloud2* pointcloud) {
   // check for bad input
-  if (marker_array == nullptr) {
+  if (pointcloud == nullptr) {
     return;
   }
 
-  // get occuppied voxels
-  double xyz[3] = {0.0};
-  std::vector<int> occ_inds;
-  for (int i = 0; i < global_mapper_ptr_->voxel_map_ptr_->num_cells; ++i) {
-    global_mapper_ptr_->voxel_map_ptr_->indToLoc(i, xyz);
+  geometry_msgs::TransformStamped transform_stamped;
+  Eigen::Vector3d transform;
+  try {
+    transform_stamped = tf_buffer_.lookupTransform("world", "body",
+                                                   ros::Time(0), ros::Duration(0.02));
+    transform(0) = transform_stamped.transform.translation.x;
+    transform(1) = transform_stamped.transform.translation.y;
+    transform(2) = transform_stamped.transform.translation.z;
+  } catch (tf2::TransformException &ex) {
+    ROS_WARN("[world_database_master_ros] OnGetTransform failed with %s", ex.what());
 
-    if (global_mapper_ptr_->voxel_map_ptr_->readValue(xyz) > 0.6) {
-      occ_inds.push_back(i);
+    transform(0) = std::numeric_limits<double>::quiet_NaN();
+    transform(1) = std::numeric_limits<double>::quiet_NaN();
+    transform(2) = std::numeric_limits<double>::quiet_NaN();
+  }
+
+  int grid_dimensions[3];
+  global_mapper_ptr_->voxel_map_ptr_->GetGridDimensions(grid_dimensions);
+
+  double xyz[3] = {0.0};
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  for (int x = 0; x < grid_dimensions[0]; x++) {
+    for (int y = 0; y < grid_dimensions[1]; y++) {
+      for (int z = 0; z < grid_dimensions[2]; z++) {
+        int ixyz[3] = {x, y, z};
+        if(global_mapper_ptr_->voxel_map_ptr_->ReadValue(ixyz) > 0.6) {
+          global_mapper_ptr_->voxel_map_ptr_->GridToWorld(ixyz, xyz);
+          cloud.push_back(pcl::PointXYZ(xyz[0], xyz[1], xyz[2]));
+        }
+      }
     }
   }
 
-  marker_array->markers.resize(occ_inds.size());
-  std::vector<double> rgb(3, 1.0);
-  for (int i = 0; i < occ_inds.size(); ++i) {
-    visualization_msgs::Marker& marker = marker_array->markers[i];
-
-    // create voxel marker
-    marker.header.frame_id = params_.map_frame;
-    marker.header.stamp = ros::Time::now();
-    marker.id = i;
-    marker.type = visualization_msgs::Marker::CUBE;
-    marker.action = visualization_msgs::Marker::ADD;
-
-    // orientation
-    marker.pose.orientation.x = 0.0;
-    marker.pose.orientation.y = 0.0;
-    marker.pose.orientation.z = 0.0;
-    marker.pose.orientation.w = 1.0;
-
-    // scale
-    marker.scale.x = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[0];
-    marker.scale.y = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[1];
-    marker.scale.z = global_mapper_ptr_->voxel_map_ptr_->metersPerPixel[2];
-
-    // position
-    global_mapper_ptr_->voxel_map_ptr_->indToLoc(occ_inds[i], xyz);
-    marker.pose.position.x = xyz[0];
-    marker.pose.position.y = xyz[1];
-    marker.pose.position.z = xyz[2];
-
-    // color
-    GrayscaleToRGBJet(marker.pose.position.z,
-                      global_mapper_ptr_->voxel_map_ptr_->xyz0[2],
-                      global_mapper_ptr_->voxel_map_ptr_->xyz1[2],
-                      &rgb);
-    marker.color.r = static_cast<float>(rgb[0]);
-    marker.color.g = static_cast<float>(rgb[1]);
-    marker.color.b = static_cast<float>(rgb[2]);
-    marker.color.a = 1.0f;
-  }
+  pcl::toROSMsg(cloud, *pointcloud);
+  pointcloud->header.frame_id = "world";
+  pointcloud->header.stamp = ros::Time::now();
 }
 
 void GlobalMapperRos::PopulatePixelMapMsg(nav_msgs::OccupancyGrid* occupancy_grid) {
-  // check for bad input
-  if (occupancy_grid == nullptr) {
-    return;
-  }
+  // // check for bad input
+  // if (occupancy_grid == nullptr) {
+  //   return;
+  // }
 
-  // header
-  occupancy_grid->header.frame_id = params_.map_frame;
-  occupancy_grid->header.stamp = ros::Time::now();
+  // // header
+  // occupancy_grid->header.frame_id = params_.map_frame;
+  // occupancy_grid->header.stamp = ros::Time::now();
 
-  // metadata
-  occupancy_grid->info.resolution = global_mapper_ptr_->pixel_map_ptr_->metersPerPixel;
-  occupancy_grid->info.width = global_mapper_ptr_->pixel_map_ptr_->dimensions[0];
-  occupancy_grid->info.height = global_mapper_ptr_->pixel_map_ptr_->dimensions[1];
-  occupancy_grid->info.origin.position.x = 0.0;
-  occupancy_grid->info.origin.position.y = 0.0;
-  occupancy_grid->info.origin.position.z = 0.0;
+  // // metadata
+  // occupancy_grid->info.resolution = global_mapper_ptr_->pixel_map_ptr_->metersPerPixel;
+  // occupancy_grid->info.width = global_mapper_ptr_->pixel_map_ptr_->dimensions[0];
+  // occupancy_grid->info.height = global_mapper_ptr_->pixel_map_ptr_->dimensions[1];
+  // occupancy_grid->info.origin.position.x = 0.0;
+  // occupancy_grid->info.origin.position.y = 0.0;
+  // occupancy_grid->info.origin.position.z = 0.0;
 
-  // data
-  float occ_value = 0.0;
-  double xy[2] = {0.0};
-  occupancy_grid->data.resize(global_mapper_ptr_->pixel_map_ptr_->num_cells);
-  for (int i = 0; i < global_mapper_ptr_->pixel_map_ptr_->num_cells; ++i) {
-    // get xy location
-    global_mapper_ptr_->pixel_map_ptr_->indToLoc(i, xy);
+  // // data
+  // float occ_value = 0.0;
+  // double xy[2] = {0.0};
+  // occupancy_grid->data.resize(global_mapper_ptr_->pixel_map_ptr_->num_cells);
+  // for (int i = 0; i < global_mapper_ptr_->pixel_map_ptr_->num_cells; ++i) {
+  //   // get xy location
+  //   global_mapper_ptr_->pixel_map_ptr_->IndexToWorld(i, xy);
 
-    // get pixel value and scale
-    occ_value = global_mapper_ptr_->pixel_map_ptr_->readValue(xy);
-    occ_value *= 100.0;
-    occupancy_grid->data[i] = static_cast<uint8_t>(occ_value + 0.5);
-  }
+  //   // get pixel value and scale
+  //   occ_value = global_mapper_ptr_->pixel_map_ptr_->ReadValue(xy);
+  //   occ_value *= 100.0;
+  //   occupancy_grid->data[i] = static_cast<uint8_t>(occ_value + 0.5);
+  // }
 }
 
 void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   // lock
-  std::lock_guard<std::mutex> map_lock(global_mapper_ptr_->map_mutex());
+  // std::lock_guard<std::mutex> map_lock(global_mapper_ptr_->map_mutex());
 
   // voxel map
   if (publish_voxel_map_) {
-    visualization_msgs::MarkerArray marker_array;
-    PopulateVoxelMapMsg(&marker_array);
-    voxel_map_pub_.publish(marker_array);
+    double start_time = ros::Time::now().toSec();
+    sensor_msgs::PointCloud2 pointcloud_msg;
+    PopulatePointCloudMsg(&pointcloud_msg);
+    // std::cout << "(global_mapper_ros) PopulatePointCloudMsg took " << ros::Time::now().toSec() - start_time << " seconds" << std::endl;
+    pointcloud_pub_.publish(pointcloud_msg);
   }
 
   // pixel_map
@@ -232,51 +224,33 @@ void GlobalMapperRos::PublishMap(const ros::TimerEvent& event) {
   }
 }
 
-void GlobalMapperRos::PointCloudCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud_ptr) {
-  // get transform
+void GlobalMapperRos::PoseCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_ptr) {
+  double xyz[3];
+  xyz[0] = pose_ptr->pose.position.x;
+  xyz[1] = pose_ptr->pose.position.y;
+  xyz[2] = pose_ptr->pose.position.z;
+  global_mapper_ptr_->voxel_map_ptr_->UpdateOrigin(xyz);
+}
+
+void GlobalMapperRos::PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_ptr) {
   const std::string target_frame = params_.map_frame;
   geometry_msgs::TransformStamped transform_stamped;
-  // try to get correct transform
   try {
-    // TODO(jakeware): FIX THIS! WHY THE FUCK DOES THIS NOT WORK?
-    // transform_stamped = tf_buffer_.lookupTransform(target_frame, cloud_ptr->header.frame_id,
-    //                                                ros::Time(cloud_ptr->header.stamp),
-    //                                                ros::Duration(0.1));
-    transform_stamped = tf_buffer_.lookupTransform(target_frame,
-                                                   cloud_ptr->header.frame_id,
-                                                   ros::Time(0));
+    transform_stamped = tf_buffer_.lookupTransform(target_frame, cloud_ptr->header.frame_id,
+                                                   ros::Time(cloud_ptr->header.stamp),
+                                                   ros::Duration(0.02));
   } catch (tf2::TransformException &ex) {
     ROS_WARN("%s", ex.what());
-
-    // try again with latest transform
-    try {
-      transform_stamped = tf_buffer_.lookupTransform(target_frame,
-                                                     cloud_ptr->header.frame_id,
-                                                     ros::Time(0));
-    } catch (tf2::TransformException &ex) {
-      ROS_WARN("%s", ex.what());
-      ros::Duration(1.0).sleep();
-      return;
-    }
+    return;
   }
+  
+  sensor_msgs::PointCloud2 cloud_out;
+  tf2::doTransform(*cloud_ptr, cloud_out, transform_stamped);
 
-  // convert transform
-  tf::Transform transform;
-  tf::transformMsgToTF(transform_stamped.transform, transform);
-
-  // transform pointcloud
-  pcl::PointCloud<pcl::PointXYZ> cloud_trans;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_trans_ptr = cloud_trans.makeShared();
-  pcl_ros::transformPointCloud(*cloud_ptr, *cloud_trans_ptr, transform);
-
-  // set origin of pointcloud
-  // NOTE(jakeware): feel like there must be a better way to do this.
-  cloud_trans_ptr->sensor_origin_[0] = transform_stamped.transform.translation.x;
-  cloud_trans_ptr->sensor_origin_[1] = transform_stamped.transform.translation.y;
-  cloud_trans_ptr->sensor_origin_[2] = transform_stamped.transform.translation.z;
-
-  // push to mapper
-  global_mapper_ptr_->PushPointCloud(cloud_trans_ptr);
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::fromROSMsg(cloud_out, cloud);
+  
+  global_mapper_ptr_->PushPointCloud(cloud.makeShared());
 }
 
 void GlobalMapperRos::Run() {

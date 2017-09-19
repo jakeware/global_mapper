@@ -6,7 +6,8 @@
   <arg name="param_file" default="global_mapper.yaml" />
 
   <!-- remap topics -->
-  <arg name="cloud_topic" default="/flight/xtion_depth/points" />
+  <arg name="cloud_topic" default="/flight/r200/points_xyz" />
+  <arg name="pose_topic" default="/pose" />
   <arg name="pixel_map_topic" default="~pixel_map" />
   <arg name="voxel_map_topic" default="~voxel_map" />
 
@@ -20,8 +21,10 @@
 
       <!-- remaps -->
       <remap from="~cloud_topic" to="$(arg cloud_topic)" />
+      <remap from="~pose_topic" to="$(arg pose_topic)" />
       <remap from="~pixel_map_topic" to="$(arg pixel_map_topic)" />
       <remap from="~voxel_map_topic" to="$(arg voxel_map_topic)" />
+      <remap from="~pointcloud_topic" to="~pointcloud" />
     </node>
 
     <!-- nodelet -->

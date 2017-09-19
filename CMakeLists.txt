@@ -27,12 +27,13 @@ set(REQ_CATKIN_PKGS
   tf2_ros
   nav_msgs
   visualization_msgs
+  tf2_sensor_msgs
 )
 find_package(catkin REQUIRED COMPONENTS ${REQ_CATKIN_PKGS})
 
 # find system dependencies
 find_package(PCL 1.7 REQUIRED COMPONENTS common)
-find_package(Eigen3 EXACT REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(Boost 1.54 REQUIRED)
 
 # add_message_files(...)
@@ -45,7 +46,7 @@ catkin_package(
  INCLUDE_DIRS src
  LIBRARIES ${PROJECT_NAME}
  CATKIN_DEPENDS ${REQ_CATKIN_PKGS}
- DEPENDS Boost PCL Eigen3
+ DEPENDS Boost PCL
 )
 
 # setup global include directories
@@ -65,3 +66,5 @@ add_subdirectory("src/global_mapper_ros")
 
 # global_mapper library
 add_subdirectory("src/global_mapper")
+
+add_subdirectory("test")
